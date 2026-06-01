@@ -10,7 +10,28 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Configure Supabase
+
+   - Create a project at [supabase.com](https://supabase.com)
+   - Copy `.env.example` to `.env` and fill in `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+   - Run the SQL in `supabase/migrations/001_user_cards.sql` in the Supabase SQL Editor
+   - Enable Email auth in Authentication → Providers
+
+3. Configure o backend de scan
+
+   ```bash
+   cd ../backend
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   cp .env.example .env
+   # Adicione OPENAI_API_KEY em backend/.env
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+   No `.env` do app, defina `EXPO_PUBLIC_SCAN_API_URL` apontando para o backend (veja `backend/README.md`).
+
+4. Start the app
 
    ```bash
    npx expo start
