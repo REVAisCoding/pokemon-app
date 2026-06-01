@@ -13,7 +13,9 @@ export default function RegisterScreen() {
       alternatePrompt="Já tem uma conta?"
       alternateHref="/login"
       alternateLabel="Entrar"
-      onSubmit={signUp}
+      onSubmit={(email, password, displayName) =>
+        signUp(email, password, displayName ?? '')
+      }
     />
   );
 }

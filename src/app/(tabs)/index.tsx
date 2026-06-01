@@ -14,10 +14,11 @@ import {
 import { RecentCollectionSection } from '@/components/home/recent-collection-section';
 import { StatsSummaryRow } from '@/components/home/stats-summary-row';
 import { ThemedView } from '@/components/themed-view';
-import { HOME_USER, type HomeStat } from '@/constants/home-data';
+import { type HomeStat } from '@/constants/home-data';
 import { PokemonColors } from '@/constants/pokemon-theme';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { getCardGameConfig } from '@/config/cardGames';
+import { getUserDisplayName, useAuth } from '@/contexts/auth-context';
 import { useCardCollection } from '@/contexts/card-collection-context';
 import { useGameSelection } from '@/contexts/game-selection-context';
 import { useCollectionSets } from '@/hooks/use-collection-sets';
@@ -27,6 +28,7 @@ import { getDuplicateCards } from '@/utils/getDuplicateCards';
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const { user } = useAuth();
   const { selectedGame } = useGameSelection();
   const gameConfig = getCardGameConfig(selectedGame ?? 'pokemon');
   const { cards, uniqueCards, totalDuplicateCards, uniqueSets, totalRareCards, totalEstimatedValueBrl } =
@@ -87,7 +89,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           <HomeHeader
-            userName={HOME_USER.name}
+            userName={getUserDisplayName(user)}
             subtitle={`Sua coleção de ${gameConfig.label}`}
           />
           <AddCardBanner onScanPress={handleScanPress} />

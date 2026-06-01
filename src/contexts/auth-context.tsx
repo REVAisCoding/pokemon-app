@@ -19,9 +19,32 @@ type AuthContextValue = {
   user: User | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => Promise<{ error: string | null }>;
+  updateDisplayName: (displayName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
+
+export function getUserDisplayName(user: User | null): string {
+  if (!user) {
+    return 'Colecionador';
+  }
+
+  const name = user.user_metadata?.display_name;
+
+  if (typeof name === 'string' && name.trim()) {
+    return name.trim();
+  }
+
+  if (user.email) {
+    return user.email.split('@')[0];
+  }
+
+  return 'Colecionador';
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -103,12 +126,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return { error: error ? mapAuthError(error.message) : null };
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     if (!isSupabaseConfigured) {
       return { error: SUPABASE_NOT_CONFIGURED_MESSAGE };
     }
 
-    const { error } = await getSupabase().auth.signUp({ email, password });
+    const trimmedName = displayName.trim();
+
+    if (!trimmedName) {
+      return { error: 'Informe um nome de usuário.' };
+    }
+
+    const { error } = await getSupabase().auth.signUp({
+      email,
+      password,
+      options: {
+        data: { display_name: trimmedName },
+      },
+    });
+
+    return { error: error ? mapAuthError(error.message) : null };
+  }, []);
+
+  const updateDisplayName = useCallback(async (displayName: string) => {
+    if (!isSupabaseConfigured) {
+      return { error: SUPABASE_NOT_CONFIGURED_MESSAGE };
+    }
+
+    const trimmedName = displayName.trim();
+
+    if (!trimmedName) {
+      return { error: 'Informe um nome de usuário.' };
+    }
+
+    const { error } = await getSupabase().auth.updateUser({
+      data: { display_name: trimmedName },
+    });
 
     return { error: error ? mapAuthError(error.message) : null };
   }, []);
@@ -128,9 +181,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isLoading,
       signIn,
       signUp,
+      updateDisplayName,
       signOut,
     }),
-    [session, isLoading, signIn, signUp, signOut],
+    [session, isLoading, signIn, signUp, updateDisplayName, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

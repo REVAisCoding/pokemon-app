@@ -23,11 +23,6 @@ export type CollectionSet = {
   abbreviation: string;
 };
 
-export const HOME_USER = {
-  name: 'Zagreu',
-  subtitle: 'Sua coleção de cartas Pokémon',
-} as const;
-
 export const HOME_STATS: HomeStat[] = [
   { id: 'cards', label: 'Cartas', value: '124', icon: 'cards' },
   { id: 'sets', label: 'Sets', value: '37', icon: 'sets' },

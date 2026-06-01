@@ -25,7 +25,11 @@ type AuthFormScreenProps = {
   alternatePrompt: string;
   alternateHref: Href;
   alternateLabel: string;
-  onSubmit: (email: string, password: string) => Promise<{ error: string | null }>;
+  onSubmit: (
+    email: string,
+    password: string,
+    displayName?: string,
+  ) => Promise<{ error: string | null }>;
 };
 
 export function AuthFormScreen({
@@ -40,14 +44,21 @@ export function AuthFormScreen({
 }: AuthFormScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     const trimmedEmail = email.trim();
+    const trimmedDisplayName = displayName.trim();
 
     if (!trimmedEmail || !password) {
       setErrorMessage('Preencha e-mail e senha.');
+      return;
+    }
+
+    if (mode === 'register' && !trimmedDisplayName) {
+      setErrorMessage('Informe um nome de usuário.');
       return;
     }
 
@@ -55,7 +66,11 @@ export function AuthFormScreen({
     setIsSubmitting(true);
 
     try {
-      const { error } = await onSubmit(trimmedEmail, password);
+      const { error } = await onSubmit(
+        trimmedEmail,
+        password,
+        mode === 'register' ? trimmedDisplayName : undefined,
+      );
 
       if (error) {
         setErrorMessage(error);
@@ -95,6 +110,21 @@ export function AuthFormScreen({
             ) : null}
 
             <View style={styles.formCard}>
+              {mode === 'register' ? (
+                <>
+                  <ThemedText style={styles.label}>Nome de usuário</ThemedText>
+                  <TextInput
+                    value={displayName}
+                    onChangeText={setDisplayName}
+                    autoCapitalize="words"
+                    autoComplete="username"
+                    placeholder="Como quer ser chamado?"
+                    placeholderTextColor={PokemonColors.textMuted}
+                    style={styles.input}
+                  />
+                </>
+              ) : null}
+
               <ThemedText style={styles.label}>E-mail</ThemedText>
               <TextInput
                 value={email}
