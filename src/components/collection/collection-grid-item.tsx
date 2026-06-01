@@ -6,6 +6,11 @@ import { ThemedText } from '@/components/themed-text';
 import { CollectionCard } from '@/contexts/card-collection-context';
 import { PokemonColors } from '@/constants/pokemon-theme';
 import { Spacing } from '@/constants/theme';
+import {
+  CARD_VIEWER_LONG_PRESS_DELAY_MS,
+  cardToViewerParams,
+  createCardViewerLongPressHandler,
+} from '@/utils/cardViewerGestures';
 
 type QuantityBadgeFormat = 'plain' | 'multiplier';
 
@@ -26,7 +31,10 @@ export function CollectionGridItem({
     <Pressable
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
       onPress={onPress}
+      onLongPress={createCardViewerLongPressHandler(cardToViewerParams(card))}
+      delayLongPress={CARD_VIEWER_LONG_PRESS_DELAY_MS}
       accessibilityRole="button"
+      accessibilityHint="Pressione e segure para visualizar a carta em tela cheia"
       accessibilityLabel={`${card.name}, ${card.set}, quantidade ${card.quantity}`}>
       <View style={styles.card}>
         <View style={styles.imageWrapper}>

@@ -17,6 +17,11 @@ export const CARD_GAME_CONFIG: Record<CardGameType, CardGameConfig> = {
     themeColor: '#C89B3C',
     searchPlaceholder: 'Buscar cartas de Riftbound…',
   },
+  magic: {
+    label: 'Magic: The Gathering',
+    themeColor: '#8B2635',
+    searchPlaceholder: 'Buscar carta de Magic...',
+  },
 };
 
 export function getCardGameConfig(gameType: CardGameType): CardGameConfig {

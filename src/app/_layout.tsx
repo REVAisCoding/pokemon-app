@@ -1,6 +1,9 @@
+import 'react-native-gesture-handler';
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, useColorScheme, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthRedirect } from '@/components/auth/auth-redirect';
 import { AuthProvider } from '@/contexts/auth-context';
@@ -27,6 +30,14 @@ function RootNavigator() {
         <Stack.Screen name="register" />
         <Stack.Screen name="game-select" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="card-viewer"
+          options={{
+            presentation: 'modal',
+            animation: 'fade',
+            headerShown: false,
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );
@@ -34,15 +45,20 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <GameSelectionProvider>
-        <RootNavigator />
-      </GameSelectionProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <AuthProvider>
+        <GameSelectionProvider>
+          <RootNavigator />
+        </GameSelectionProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',

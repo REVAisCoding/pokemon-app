@@ -3,9 +3,14 @@ import { type ScannedCard } from '@/constants/scan-data';
 import { searchCardsByName } from '@/services/pokemonTcgApi';
 import { scanCardFromImage } from '@/services/scanApiService';
 import {
+  magicGameCardToScannedCard,
+  searchMagicCardsForRecognition,
+} from '@/services/magicApi';
+import {
   riftboundGameCardToScannedCard,
   searchRiftboundCardsByNameAsGameCards,
 } from '@/services/riftboundApi';
+import { type ExtractedCardInfo } from '@/services/scanApiService';
 import { type CardGameType, type GameCard } from '@/types/cardGame';
 import { resolveScannedCardPrice } from '@/utils/pricing';
 
@@ -48,6 +53,10 @@ export function gameCardToScannedCard(card: GameCard): ScannedCard {
     return riftboundGameCardToScannedCard(card);
   }
 
+  if (card.gameType === 'magic') {
+    return magicGameCardToScannedCard(card);
+  }
+
   return {
     id: card.id,
     name: card.name,
@@ -67,6 +76,7 @@ async function resolveCandidates(
   gameType: CardGameType,
   detectedName: string,
   backendCandidates: ScannedCard[],
+  extracted: ExtractedCardInfo,
 ): Promise<GameCard[]> {
   if (gameType === 'pokemon') {
     if (backendCandidates.length > 0) {
@@ -81,12 +91,28 @@ async function resolveCandidates(
     return scannedCards.slice(0, 3).map(scannedCardToGameCard);
   }
 
-  if (!detectedName.trim()) {
-    return [];
+  if (gameType === 'riftbound') {
+    if (!detectedName.trim()) {
+      return [];
+    }
+
+    const riftboundCards = await searchRiftboundCardsByNameAsGameCards(detectedName);
+    return riftboundCards.slice(0, 3);
   }
 
-  const riftboundCards = await searchRiftboundCardsByNameAsGameCards(detectedName);
-  return riftboundCards.slice(0, 3);
+  if (gameType === 'magic') {
+    if (!detectedName.trim()) {
+      return [];
+    }
+
+    const magicCards = await searchMagicCardsForRecognition(detectedName, {
+      collectorNumber: extracted.number,
+      setCode: extracted.set,
+    });
+    return magicCards.slice(0, 3);
+  }
+
+  return [];
 }
 
 export async function recognizeCardFromImage(
@@ -108,6 +134,7 @@ export async function recognizeCardFromImage(
       gameType,
       detectedName,
       scanResult.candidates,
+      scanResult.extracted,
     );
 
     if (candidates.length === 0) {

@@ -16,6 +16,7 @@ import { type CardGameType } from '@/types/cardGame';
 const LOADING_TITLE: Record<CardGameType, string> = {
   pokemon: 'Analisando carta de Pokémon...',
   riftbound: 'Analisando carta de Riftbound...',
+  magic: 'Analisando carta de Magic...',
 };
 
 export function LoadingScreen() {
@@ -51,6 +52,16 @@ export function LoadingScreen() {
       }
 
       if (result.status === 'low_confidence') {
+        if (gameType === 'magic') {
+          router.replace({
+            pathname: '/scan/error',
+            params: {
+              message: 'Não consegui identificar a carta.',
+            },
+          } as Href);
+          return;
+        }
+
         router.replace({
           pathname: '/search',
           params: { initialQuery: result.cardName?.trim() ?? '' },

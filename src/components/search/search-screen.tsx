@@ -18,19 +18,42 @@ import { PokemonColors } from '@/constants/pokemon-theme';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { getCardGameConfig } from '@/config/cardGames';
 import { useGameSelection } from '@/contexts/game-selection-context';
+import {
+  magicGameCardToScannedCard,
+  searchMagicCardsByName,
+} from '@/services/magicApi';
 import { searchCardsByName } from '@/services/pokemonTcgApi';
 import {
   riftboundGameCardToScannedCard,
   searchRiftboundCardsByNameAsGameCards,
 } from '@/services/riftboundApi';
+import { type CardGameType } from '@/types/cardGame';
 
 const SEARCH_DEBOUNCE_MS = 500;
+
+const SEARCH_EMPTY_HINT: Record<CardGameType, string> = {
+  pokemon: 'Digite o nome de uma carta para ver resultados da Pokémon TCG API.',
+  riftbound: 'Digite o nome de uma carta para ver resultados do Riftcodex.',
+  magic: 'Digite o nome de uma carta para ver resultados da Scryfall API.',
+};
+
+async function searchCardsForGame(gameType: CardGameType, query: string): Promise<ScannedCard[]> {
+  if (gameType === 'riftbound') {
+    return (await searchRiftboundCardsByNameAsGameCards(query)).map(riftboundGameCardToScannedCard);
+  }
+
+  if (gameType === 'magic') {
+    return (await searchMagicCardsByName(query)).map(magicGameCardToScannedCard);
+  }
+
+  return searchCardsByName(query);
+}
 
 export function SearchScreen() {
   const router = useRouter();
   const { selectedGame } = useGameSelection();
-  const gameConfig = getCardGameConfig(selectedGame ?? 'pokemon');
-  const isRiftbound = selectedGame === 'riftbound';
+  const activeGameType = selectedGame ?? 'pokemon';
+  const gameConfig = getCardGameConfig(activeGameType);
   const { initialQuery } = useLocalSearchParams<{ initialQuery?: string }>();
   const [query, setQuery] = useState(initialQuery?.trim() ?? '');
   const [results, setResults] = useState<ScannedCard[]>([]);
@@ -54,11 +77,7 @@ export function SearchScreen() {
 
     const timeoutId = setTimeout(async () => {
       try {
-        const cards = isRiftbound
-          ? (await searchRiftboundCardsByNameAsGameCards(trimmedQuery)).map(
-              riftboundGameCardToScannedCard,
-            )
-          : await searchCardsByName(trimmedQuery);
+        const cards = await searchCardsForGame(activeGameType, trimmedQuery);
         setResults(cards);
         setHasSearched(true);
       } catch (searchError) {
@@ -75,7 +94,7 @@ export function SearchScreen() {
     }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(timeoutId);
-  }, [query, isRiftbound]);
+  }, [query, activeGameType]);
 
   const handleCardPress = (card: ScannedCard) => {
     Keyboard.dismiss();
@@ -104,9 +123,7 @@ export function SearchScreen() {
         <View style={styles.emptyState}>
           <ThemedText style={styles.emptyTitle}>Busque uma carta</ThemedText>
           <ThemedText style={styles.emptyDescription}>
-            {isRiftbound
-              ? 'Digite o nome de uma carta para ver resultados do Riftcodex.'
-              : 'Digite o nome de uma carta para ver resultados da Pokémon TCG API.'}
+            {SEARCH_EMPTY_HINT[activeGameType]}
           </ThemedText>
         </View>
       );

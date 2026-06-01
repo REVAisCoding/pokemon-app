@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { useNavigation, useRouter } from 'expo-router';
 import { useLayoutEffect, useState } from 'react';
 import {
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LongPressCardImage } from '@/components/card-viewer/long-press-card-image';
 import { HomeIcon } from '@/components/home/home-icon';
 import { ThemedText } from '@/components/themed-text';
 import { CollectionCard, useCardCollection } from '@/contexts/card-collection-context';
@@ -117,14 +117,18 @@ export function CardDetailScreen({ card }: CardDetailScreenProps) {
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.imageSection}>
-            <View style={styles.imageFrame}>
-              <Image
-                source={{ uri: card.imageUrl }}
-                style={styles.image}
-                contentFit="contain"
-                transition={200}
-              />
-            </View>
+            <LongPressCardImage
+              imageUrl={card.imageUrl}
+              name={card.name}
+              cardId={card.id}
+              gameType={card.gameType}
+              rarity={card.rarity}
+              rawData={card.rawData}
+              style={styles.imageFrame}
+              imageStyle={styles.image}
+              contentFit="contain"
+              accessibilityLabel={`Pressione e segure para visualizar ${card.name} em tela cheia`}
+            />
           </View>
 
           <View style={styles.detailsCard}>

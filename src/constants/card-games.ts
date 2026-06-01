@@ -26,6 +26,13 @@ export const CARD_GAMES: CardGame[] = [
     description: 'Gerencie sua coleção de cartas Riftbound.',
     accentColor: CARD_GAME_CONFIG.riftbound.themeColor,
   },
+  {
+    id: 'magic',
+    name: CARD_GAME_CONFIG.magic.label,
+    shortName: 'Magic',
+    description: 'Gerencie sua coleção de cartas Magic: The Gathering.',
+    accentColor: CARD_GAME_CONFIG.magic.themeColor,
+  },
 ];
 
 export function isCardGameId(value: string): value is CardGameId {

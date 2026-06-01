@@ -17,9 +17,17 @@ import {
 
 const DEFAULT_GAME_TYPE: CardGameType = 'pokemon';
 
+function isMagicCardId(cardId: string): boolean {
+  return cardId.startsWith('magic-');
+}
+
 export function inferGameTypeFromCardId(cardId: string): CardGameType {
   if (isRiftboundCardId(cardId)) {
     return 'riftbound';
+  }
+
+  if (isMagicCardId(cardId)) {
+    return 'magic';
   }
 
   return DEFAULT_GAME_TYPE;
@@ -33,10 +41,18 @@ export function resolveCardGameType(card: {
     return 'riftbound';
   }
 
+  if (card.gameType === 'magic') {
+    return 'magic';
+  }
+
   const inferredFromId = inferGameTypeFromCardId(card.id);
 
   if (inferredFromId === 'riftbound') {
     return 'riftbound';
+  }
+
+  if (inferredFromId === 'magic') {
+    return 'magic';
   }
 
   if (card.gameType === 'pokemon') {

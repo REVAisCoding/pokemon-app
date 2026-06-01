@@ -6,6 +6,11 @@ import { ThemedText } from '@/components/themed-text';
 import { type ScannedCard } from '@/constants/scan-data';
 import { PokemonColors } from '@/constants/pokemon-theme';
 import { Spacing } from '@/constants/theme';
+import {
+  CARD_VIEWER_LONG_PRESS_DELAY_MS,
+  cardToViewerParams,
+  createCardViewerLongPressHandler,
+} from '@/utils/cardViewerGestures';
 
 type SearchResultGridItemProps = {
   card: ScannedCard;
@@ -17,7 +22,10 @@ export function SearchResultGridItem({ card, onPress }: SearchResultGridItemProp
     <Pressable
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
       onPress={onPress}
+      onLongPress={createCardViewerLongPressHandler(cardToViewerParams(card))}
+      delayLongPress={CARD_VIEWER_LONG_PRESS_DELAY_MS}
       accessibilityRole="button"
+      accessibilityHint="Pressione e segure para visualizar a carta em tela cheia"
       accessibilityLabel={`${card.name}, ${card.setName}`}>
       <View style={styles.card}>
         <Image

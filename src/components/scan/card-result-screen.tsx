@@ -1,8 +1,8 @@
-import { Image } from 'expo-image';
 import { type Href, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LongPressCardImage } from '@/components/card-viewer/long-press-card-image';
 import { ThemedText } from '@/components/themed-text';
 import { type ScannedCard } from '@/constants/scan-data';
 import { PokemonColors } from '@/constants/pokemon-theme';
@@ -85,14 +85,16 @@ export function CardResultScreen({ card, source = 'scan' }: CardResultScreenProp
           </View>
 
           <View style={styles.cardPreview}>
-            <View style={styles.imageFrame}>
-              <Image
-                source={{ uri: card.imageUrl }}
-                style={styles.cardImage}
-                contentFit="contain"
-                transition={200}
-              />
-            </View>
+            <LongPressCardImage
+              imageUrl={card.imageUrl}
+              name={card.name}
+              gameType={resolvedGameType}
+              rarity={card.rarity}
+              style={styles.imageFrame}
+              imageStyle={styles.cardImage}
+              contentFit="contain"
+              accessibilityLabel={`Pressione e segure para visualizar ${card.name} em tela cheia`}
+            />
           </View>
 
           <View style={styles.detailsCard}>

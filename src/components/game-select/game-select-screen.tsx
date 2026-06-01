@@ -16,6 +16,7 @@ type GameCardProps = {
 const GAME_ICONS: Record<CardGame['id'], string> = {
   pokemon: '⚡',
   riftbound: '🃏',
+  magic: '🔮',
 };
 
 function GameCard({ game, onPress }: GameCardProps) {

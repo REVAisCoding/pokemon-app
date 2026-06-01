@@ -1,4 +1,4 @@
-export type CardGameType = 'pokemon' | 'riftbound';
+export type CardGameType = 'pokemon' | 'riftbound' | 'magic';
 
 export type CardPriceSource = 'pokemon_tcg_api' | 'tcgplayer' | 'manual' | 'unavailable';
 
@@ -25,7 +25,7 @@ export type GameCard = {
 };
 
 export function isCardGameType(value: string): value is CardGameType {
-  return value === 'pokemon' || value === 'riftbound';
+  return value === 'pokemon' || value === 'riftbound' || value === 'magic';
 }
 
 export function isCardPriceSource(value: string): value is CardPriceSource {
