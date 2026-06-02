@@ -9,6 +9,8 @@ import {
 import { getCardRarity } from '@/utils/card-rarity';
 import { deriveSetIdFromCard } from '@/utils/deriveSetIdFromCard';
 import {
+  canonicalizeRiftboundCardId,
+  extractRiftboundIdFromRawData,
   extractRiftboundSetCode,
   extractRiftboundSetIdFromRawData,
   extractRiftboundSetSize,
@@ -76,6 +78,54 @@ function isScryfallRawData(rawData?: Record<string, unknown>): boolean {
   );
 }
 
+function isRiftboundImageUrl(imageUrl?: string): boolean {
+  if (!imageUrl?.trim()) {
+    return false;
+  }
+
+  return /rgpub\.io/i.test(imageUrl);
+}
+
+function isRiftboundRawData(rawData?: Record<string, unknown>): boolean {
+  if (!rawData) {
+    return false;
+  }
+
+  if (extractRiftboundIdFromRawData(rawData)) {
+    return true;
+  }
+
+  const classification = rawData.classification;
+
+  if (classification && typeof classification === 'object') {
+    const type = (classification as { type?: unknown }).type;
+
+    if (typeof type === 'string' && type.trim().length > 0) {
+      return true;
+    }
+  }
+
+  const set = rawData.set;
+
+  if (set && typeof set === 'object') {
+    const setId = (set as { set_id?: unknown }).set_id;
+
+    if (typeof setId === 'string' && setId.trim().length > 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isRiftboundCardTypeHint(type?: string): boolean {
+  if (!type?.trim()) {
+    return false;
+  }
+
+  return /\brune\b/i.test(type) || /\bdomain\b/i.test(type) || type.includes(' · ');
+}
+
 function buildMagicCardId(scryfallId: string): string {
   return `${MAGIC_CARD_ID_PREFIX}${scryfallId.toLowerCase()}`;
 }
@@ -113,7 +163,33 @@ function inferGameTypeFromCardMetadata(card: CardGameTypeHints): CardGameType | 
     return 'magic';
   }
 
+  if (
+    extractRiftboundIdFromRawData(card.rawData) ||
+    isRiftboundImageUrl(card.imageUrl) ||
+    isRiftboundRawData(card.rawData) ||
+    isRiftboundCardTypeHint(card.type)
+  ) {
+    return 'riftbound';
+  }
+
   return null;
+}
+
+/** Jogo salvo na coleção — não reclassifica por ID, imagem ou metadados. */
+export function getCollectionCardGameType(card: CardGameTypeHints): CardGameType {
+  if (card.gameType === 'riftbound' || card.gameType === 'runeterra') {
+    return 'riftbound';
+  }
+
+  if (card.gameType === 'magic') {
+    return 'magic';
+  }
+
+  if (card.gameType === 'pokemon') {
+    return 'pokemon';
+  }
+
+  return DEFAULT_GAME_TYPE;
 }
 
 export function resolveCardGameType(card: CardGameTypeHints): CardGameType {
@@ -145,10 +221,32 @@ export function resolveCardGameType(card: CardGameTypeHints): CardGameType {
 }
 
 export function getCardCollectionKey(card: CardGameTypeHints): string {
-  const gameType = resolveCardGameType(card);
-  const id = gameType === 'magic' ? canonicalizeMagicCardId(card) : card.id;
+  const gameType = getCollectionCardGameType(card);
+  const id =
+    gameType === 'magic'
+      ? canonicalizeMagicCardId(card)
+      : gameType === 'riftbound'
+        ? canonicalizeRiftboundCardId(card)
+        : card.id;
 
   return `${gameType}:${id}`;
+}
+
+/** Mesmo ID em Pokémon e em outro jogo: remove a cópia Pokémon obsoleta. */
+function dropObsoletePokemonDuplicates(cards: CollectionCard[]): CollectionCard[] {
+  const otherGameIds = new Set(
+    cards
+      .filter((card) => getCollectionCardGameType(card) !== 'pokemon')
+      .map((card) => card.id),
+  );
+
+  return cards.filter((card) => {
+    if (getCollectionCardGameType(card) !== 'pokemon') {
+      return true;
+    }
+
+    return !otherGameIds.has(card.id);
+  });
 }
 
 function mergeDuplicateMagicCards(
@@ -211,14 +309,19 @@ export function reconcileCollectionCards(cards: CollectionCard[]): CollectionCar
     magicByScryfallId.set(scryfallId, mergeDuplicateMagicCards(existing, card));
   }
 
-  return [...reconciled, ...magicByScryfallId.values()];
+  return dropObsoletePokemonDuplicates([...reconciled, ...magicByScryfallId.values()]);
 }
 
 export function normalizeCollectionCard(card: CollectionCard): CollectionCard {
-  const gameType = resolveCardGameType(card);
+  const gameType = getCollectionCardGameType(card);
   const rarity = getCardRarity(card);
   const price = getCardPrice(card);
-  const id = gameType === 'magic' ? canonicalizeMagicCardId(card) : card.id;
+  const id =
+    gameType === 'magic'
+      ? canonicalizeMagicCardId(card)
+      : gameType === 'riftbound'
+        ? canonicalizeRiftboundCardId(card)
+        : card.id;
 
   const normalized: CollectionCard = {
     ...card,
@@ -240,7 +343,7 @@ export function normalizeCollectionCard(card: CollectionCard): CollectionCard {
     normalized.estimatedValueBrl = card.estimatedValueBrl;
   }
 
-  if (isRiftboundCardId(normalized.id)) {
+  if (gameType === 'riftbound') {
     const riftboundSetId =
       extractRiftboundSetIdFromRawData(normalized.rawData) ?? extractRiftboundSetCode(normalized.id);
 
@@ -251,7 +354,7 @@ export function normalizeCollectionCard(card: CollectionCard): CollectionCard {
     normalized.setId = deriveSetIdFromCard(normalized);
   }
 
-  if (!normalized.setPrintedTotal && isRiftboundCardId(normalized.id)) {
+  if (!normalized.setPrintedTotal && gameType === 'riftbound' && isRiftboundCardId(normalized.id)) {
     const setSize = extractRiftboundSetSize(normalized.id);
 
     if (setSize) {
@@ -413,5 +516,5 @@ export function filterCardsByGameType<T extends GameCard>(
   cards: T[],
   gameType: CardGameType,
 ): T[] {
-  return cards.filter((card) => resolveCardGameType(card) === gameType);
+  return cards.filter((card) => getCollectionCardGameType(card) === gameType);
 }

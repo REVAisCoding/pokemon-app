@@ -64,7 +64,7 @@ export async function fetchCardPrice(
     const tcgplayerId =
       options?.tcgplayerId ?? getTcgplayerIdFromRawData(options?.rawData);
 
-    return fetchRiftboundCardPrice(cardApiId, tcgplayerId);
+    return fetchRiftboundCardPrice(cardApiId, tcgplayerId, options?.rawData);
   }
 
   return fetchPokemonCardPrice(cardApiId);

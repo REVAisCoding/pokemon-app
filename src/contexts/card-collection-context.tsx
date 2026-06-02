@@ -31,7 +31,12 @@ import {
 } from '@/services/collectionStorage';
 import { type CardGameType, type CardPrice } from '@/types/cardGame';
 import { type AddCollectionCardInput, type CollectionCard } from '@/types/collection-card';
-import { filterCardsByGameType, normalizeCollectionCard, reconcileCollectionCards, resolveCardGameType } from '@/utils/collectionCardMigration';
+import {
+  filterCardsByGameType,
+  getCollectionCardGameType,
+  normalizeCollectionCard,
+  reconcileCollectionCards,
+} from '@/utils/collectionCardMigration';
 import { useExchangeRates } from '@/contexts/exchange-rate-context';
 import { calculateCollectionEstimatedValue } from '@/utils/pricing';
 import { getCardRarity, isRareCard } from '@/utils/card-rarity';
@@ -223,17 +228,11 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
 
   const addCard = useCallback(
     (card: AddCollectionCardInput) => {
-      const gameType = resolveCardGameType({
-        id: card.id,
-        gameType: card.gameType,
-        imageUrl: card.imageUrl,
-        type: card.type,
-        rawData: card.rawData,
-      });
+      const gameType = activeGameType;
 
       setAllCards((currentCards) => {
         const existingIndex = currentCards.findIndex(
-          (item) => item.id === card.id && resolveCardGameType(item) === gameType,
+          (item) => item.id === card.id && getCollectionCardGameType(item) === gameType,
         );
         let nextCards: CollectionCard[];
 
@@ -244,7 +243,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
             quantity: 1,
             setName: card.setName ?? card.set,
           });
-          nextCards = [newCard, ...currentCards];
+          nextCards = reconcileCollectionCards([newCard, ...currentCards]);
           void persistCardToCloud(newCard);
 
           return nextCards;
@@ -264,9 +263,9 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
           quantity: currentCards[existingIndex].quantity + 1,
         });
         const remainingCards = currentCards.filter(
-          (item) => !(item.id === card.id && resolveCardGameType(item) === gameType),
+          (item) => !(item.id === card.id && getCollectionCardGameType(item) === gameType),
         );
-        nextCards = [updatedCard, ...remainingCards];
+        nextCards = reconcileCollectionCards([updatedCard, ...remainingCards]);
         void persistCardToCloud(updatedCard);
 
         return nextCards;
@@ -279,7 +278,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
     (id: string) => {
       setAllCards((currentCards) => {
         const existingIndex = currentCards.findIndex(
-          (item) => item.id === id && resolveCardGameType(item) === activeGameType,
+          (item) => item.id === id && getCollectionCardGameType(item) === activeGameType,
         );
 
         if (existingIndex === -1) {
@@ -291,7 +290,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
           quantity: currentCards[existingIndex].quantity + 1,
         });
         const remainingCards = currentCards.filter(
-          (item) => !(item.id === id && resolveCardGameType(item) === activeGameType),
+          (item) => !(item.id === id && getCollectionCardGameType(item) === activeGameType),
         );
         const nextCards = [updatedCard, ...remainingCards];
 
@@ -307,7 +306,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
     (id: string) => {
       setAllCards((currentCards) => {
         const existingIndex = currentCards.findIndex(
-          (item) => item.id === id && resolveCardGameType(item) === activeGameType,
+          (item) => item.id === id && getCollectionCardGameType(item) === activeGameType,
         );
 
         if (existingIndex === -1 || currentCards[existingIndex].quantity <= 1) {
@@ -319,7 +318,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
           quantity: currentCards[existingIndex].quantity - 1,
         });
         const remainingCards = currentCards.filter(
-          (item) => !(item.id === id && resolveCardGameType(item) === activeGameType),
+          (item) => !(item.id === id && getCollectionCardGameType(item) === activeGameType),
         );
         const nextCards = [updatedCard, ...remainingCards];
 
@@ -336,7 +335,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
       setAllCards((currentCards) => {
         void removeCardFromCloudSafe(id);
         return currentCards.filter(
-          (item) => !(item.id === id && resolveCardGameType(item) === activeGameType),
+          (item) => !(item.id === id && getCollectionCardGameType(item) === activeGameType),
         );
       });
     },
@@ -347,7 +346,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
     (id: string, price: CardPrice) => {
       setAllCards((currentCards) =>
         currentCards.map((card) => {
-          if (card.id !== id || resolveCardGameType(card) !== activeGameType) {
+          if (card.id !== id || getCollectionCardGameType(card) !== activeGameType) {
             return card;
           }
 

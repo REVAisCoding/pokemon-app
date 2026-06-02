@@ -1,8 +1,38 @@
-/** Riftbound card id: `{setCode}-{collectorNumber}-{setSize}` e.g. `ogn-42-259` */
-export const RIFTBOUND_CARD_ID_PATTERN = /^(ogn|ogs|unl|sfd|opp|jdg|pr)-(\d+)-(\d+)$/i;
+/** Riftbound card id: `{setCode}-{collectorNumber}-{setSize}` e.g. `ogn-42-259`, `ogn-166a-298` */
+export const RIFTBOUND_CARD_ID_PATTERN =
+  /^(ogn|ogs|unl|sfd|opp|jdg|pr)-([\da-z]+)-(\d+)$/i;
 
 export function isRiftboundCardId(cardId: string): boolean {
   return RIFTBOUND_CARD_ID_PATTERN.test(cardId.trim());
+}
+
+export function extractRiftboundIdFromRawData(
+  rawData?: Record<string, unknown>,
+): string | null {
+  const riftboundId = rawData?.riftbound_id;
+
+  if (typeof riftboundId !== 'string' || !riftboundId.trim()) {
+    return null;
+  }
+
+  const normalizedId = riftboundId.trim().toLowerCase();
+
+  return isRiftboundCardId(normalizedId) ? normalizedId : null;
+}
+
+export function canonicalizeRiftboundCardId(card: {
+  id: string;
+  rawData?: Record<string, unknown>;
+}): string {
+  const fromRawData = extractRiftboundIdFromRawData(card.rawData);
+
+  if (fromRawData) {
+    return fromRawData;
+  }
+
+  const normalizedId = card.id.trim().toLowerCase();
+
+  return isRiftboundCardId(normalizedId) ? normalizedId : card.id;
 }
 
 export function extractRiftboundSetCode(cardId: string): string | null {

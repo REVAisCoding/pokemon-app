@@ -1,36 +1,109 @@
-import { RIFTCODEX_BASE_URL } from '@/config/riftcodex';
 import { getScanApiUrl } from '@/services/scanApiService';
 import { type CardPrice } from '@/types/cardGame';
-import { type RiftboundCard } from '@/types/riftbound';
 import { createUnavailablePrice, isPriceAvailable } from '@/utils/pricing';
-
-type TcgApiDevPriceEntry = {
-  printing?: string;
-  market_price?: number | null;
-  median_price?: number | null;
-  low_price?: number | null;
-  last_updated_at?: string | null;
-};
-
-type TcgApiDevCardResponse = {
-  data?: {
-    prices?: TcgApiDevPriceEntry[];
-  };
-};
+import { extractRiftboundSetIdFromRawData } from '@/utils/riftboundCardId';
 
 type BackendPriceResponse = {
   price: CardPrice | null;
 };
 
 const priceCache = new Map<string, CardPrice>();
-const tcgplayerIdCache = new Map<string, string>();
 
-function cacheKey(tcgplayerId: string): string {
-  return tcgplayerId.trim();
+function cacheKey(riftboundId: string, tcgplayerId?: string): string {
+  return `${riftboundId}:${tcgplayerId?.trim() ?? ''}`;
 }
 
+function buildPriceQueryParams(
+  tcgplayerId?: string,
+  rawData?: Record<string, unknown>,
+): URLSearchParams {
+  const params = new URLSearchParams();
+
+  if (tcgplayerId?.trim()) {
+    params.set('tcgplayer_id', tcgplayerId.trim());
+  }
+
+  const name = rawData?.name;
+  if (typeof name === 'string' && name.trim()) {
+    params.set('name', name.trim());
+  }
+
+  const setId = extractRiftboundSetIdFromRawData(rawData);
+  if (setId) {
+    params.set('set_id', setId);
+  }
+
+  return params;
+}
+
+async function fetchPriceFromBackend(
+  riftboundId: string,
+  tcgplayerId?: string,
+  rawData?: Record<string, unknown>,
+): Promise<CardPrice> {
+  const scanApiUrl = getScanApiUrl();
+  const params = buildPriceQueryParams(tcgplayerId, rawData);
+  const query = params.toString();
+  const url = `${scanApiUrl}/riftbound/price/by-id/${encodeURIComponent(riftboundId)}${
+    query ? `?${query}` : ''
+  }`;
+
+  const response = await fetch(url);
+
+  if (response.status === 503) {
+    return createUnavailablePrice('USD');
+  }
+
+  if (!response.ok) {
+    return createUnavailablePrice('USD');
+  }
+
+  const payload = (await response.json()) as BackendPriceResponse;
+
+  if (!payload.price || !isPriceAvailable(payload.price)) {
+    return createUnavailablePrice('USD');
+  }
+
+  return payload.price;
+}
+
+export async function fetchRiftboundCardPrice(
+  riftboundId: string,
+  tcgplayerId?: string,
+  rawData?: Record<string, unknown>,
+): Promise<CardPrice> {
+  const key = cacheKey(riftboundId, tcgplayerId);
+  const cached = priceCache.get(key);
+
+  if (cached && isPriceAvailable(cached)) {
+    return cached;
+  }
+
+  const price = await fetchPriceFromBackend(riftboundId, tcgplayerId, rawData);
+
+  if (isPriceAvailable(price)) {
+    priceCache.set(key, price);
+  }
+
+  return price;
+}
+
+export function getTcgplayerIdFromRawData(rawData?: Record<string, unknown>): string | undefined {
+  const tcgplayerId = rawData?.tcgplayer_id;
+
+  return typeof tcgplayerId === 'string' && tcgplayerId.trim().length > 0
+    ? tcgplayerId.trim()
+    : undefined;
+}
+
+/** @deprecated kept for tests — prefer backend proxy */
 export function extractTcgApiDevPrice(
-  prices: TcgApiDevPriceEntry[] | undefined,
+  prices: Array<{
+    market_price?: number | null;
+    median_price?: number | null;
+    low_price?: number | null;
+    last_updated_at?: string | null;
+  }> | undefined,
   updatedAt?: string | null,
 ): CardPrice {
   if (!prices || prices.length === 0) {
@@ -71,84 +144,4 @@ export function extractTcgApiDevPrice(
   }
 
   return createUnavailablePrice('USD');
-}
-
-async function fetchTcgplayerIdFromRiftcodex(riftboundId: string): Promise<string | null> {
-  const cached = tcgplayerIdCache.get(riftboundId);
-
-  if (cached) {
-    return cached;
-  }
-
-  const response = await fetch(
-    `${RIFTCODEX_BASE_URL}/cards/riftbound/${encodeURIComponent(riftboundId)}`,
-  );
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const payload = (await response.json()) as RiftboundCard | RiftboundCard[];
-  const card = Array.isArray(payload) ? payload[0] : payload;
-  const tcgplayerId = card?.tcgplayer_id?.trim();
-
-  if (!tcgplayerId) {
-    return null;
-  }
-
-  tcgplayerIdCache.set(riftboundId, tcgplayerId);
-
-  return tcgplayerId;
-}
-
-async function fetchPriceFromBackend(tcgplayerId: string): Promise<CardPrice> {
-  const scanApiUrl = getScanApiUrl();
-  const response = await fetch(`${scanApiUrl}/riftbound/price/${encodeURIComponent(tcgplayerId)}`);
-
-  if (response.status === 503) {
-    return createUnavailablePrice('USD');
-  }
-
-  if (!response.ok) {
-    return createUnavailablePrice('USD');
-  }
-
-  const payload = (await response.json()) as BackendPriceResponse;
-
-  if (!payload.price || !isPriceAvailable(payload.price)) {
-    return createUnavailablePrice('USD');
-  }
-
-  return payload.price;
-}
-
-export async function fetchRiftboundCardPrice(
-  riftboundId: string,
-  tcgplayerId?: string,
-): Promise<CardPrice> {
-  const resolvedTcgplayerId = tcgplayerId?.trim() || (await fetchTcgplayerIdFromRiftcodex(riftboundId));
-
-  if (!resolvedTcgplayerId) {
-    return createUnavailablePrice('USD');
-  }
-
-  const key = cacheKey(resolvedTcgplayerId);
-  const cached = priceCache.get(key);
-
-  if (cached) {
-    return cached;
-  }
-
-  const price = await fetchPriceFromBackend(resolvedTcgplayerId);
-  priceCache.set(key, price);
-
-  return price;
-}
-
-export function getTcgplayerIdFromRawData(rawData?: Record<string, unknown>): string | undefined {
-  const tcgplayerId = rawData?.tcgplayer_id;
-
-  return typeof tcgplayerId === 'string' && tcgplayerId.trim().length > 0
-    ? tcgplayerId.trim()
-    : undefined;
 }

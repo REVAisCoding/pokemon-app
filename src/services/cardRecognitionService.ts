@@ -13,6 +13,7 @@ import {
 } from '@/services/riftboundApi';
 import { type ExtractedCardInfo } from '@/services/scanApiService';
 import { type CardGameType, type GameCard } from '@/types/cardGame';
+import { resolveCardGameType } from '@/utils/collectionCardMigration';
 import { resolveScannedCardPrice } from '@/utils/pricing';
 
 export type CardRecognitionResult = {
@@ -35,7 +36,13 @@ function scannedCardToGameCard(card: ScannedCard): GameCard {
 
   return {
     id: card.id,
-    gameType: card.gameType ?? 'pokemon',
+    gameType: resolveCardGameType({
+      id: card.id,
+      gameType: card.gameType,
+      imageUrl: card.imageUrl,
+      type: card.type,
+      ...(card.tcgplayerId ? { rawData: { tcgplayer_id: card.tcgplayerId } } : {}),
+    }),
     name: card.name,
     imageUrl: card.imageUrl,
     setName: card.setName,
@@ -50,12 +57,14 @@ function scannedCardToGameCard(card: ScannedCard): GameCard {
 }
 
 export function gameCardToScannedCard(card: GameCard): ScannedCard {
-  if (card.gameType === 'riftbound') {
-    return riftboundGameCardToScannedCard(card);
+  const gameType = resolveCardGameType(card);
+
+  if (gameType === 'riftbound') {
+    return riftboundGameCardToScannedCard({ ...card, gameType });
   }
 
-  if (card.gameType === 'magic') {
-    return magicGameCardToScannedCard(card);
+  if (gameType === 'magic') {
+    return magicGameCardToScannedCard({ ...card, gameType });
   }
 
   return {

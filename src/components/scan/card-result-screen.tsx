@@ -36,14 +36,14 @@ export function CardResultScreen({ card, source = 'scan' }: CardResultScreenProp
   const { addCard } = useCardCollection();
   const { selectedGame } = useGameSelection();
   const { formatCardPriceLabel } = usePricing();
-  const resolvedGameType = card.gameType ?? selectedGame ?? 'pokemon';
+  const activeGameType = selectedGame ?? 'pokemon';
 
   const handleAddToCollection = () => {
     const price = resolveScannedCardPrice(card);
 
     addCard({
       id: card.id,
-      gameType: resolvedGameType,
+      gameType: activeGameType,
       name: card.name,
       set: card.setName,
       number: card.number,
@@ -90,7 +90,7 @@ export function CardResultScreen({ card, source = 'scan' }: CardResultScreenProp
             <LongPressCardImage
               imageUrl={card.imageUrl}
               name={card.name}
-              gameType={resolvedGameType}
+              gameType={activeGameType}
               rarity={card.rarity}
               style={styles.imageFrame}
               imageStyle={styles.cardImage}

@@ -4,13 +4,13 @@ import { type CollectionCard } from '@/types/collection-card';
 import { getCardRarity } from '@/utils/card-rarity';
 import {
   getCardCollectionKey,
+  getCollectionCardGameType,
   normalizeCollectionCard,
-  resolveCardGameType,
 } from '@/utils/collectionCardMigration';
 import { getCardPrice, isPriceAvailable } from '@/utils/pricing';
 
 function isEnrichableGame(card: CollectionCard): boolean {
-  const gameType = resolveCardGameType(card);
+  const gameType = getCollectionCardGameType(card);
   return gameType === 'pokemon' || gameType === 'riftbound';
 }
 
@@ -39,7 +39,7 @@ export async function enrichCollectionCards(cards: CollectionCard[]): Promise<Co
   await Promise.all(
     targets.map(async (card) => {
       const key = getCardCollectionKey(card);
-      const gameType = resolveCardGameType(card);
+      const gameType = getCollectionCardGameType(card);
 
       const [price, rarity] = await Promise.all([
         needsPrice(card)

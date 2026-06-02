@@ -56,7 +56,7 @@ export async function enrichRiftboundGameCardsWithPrice(cards: GameCard[]): Prom
       }
 
       const tcgplayerId = getTcgplayerIdFromRawData(card.rawData);
-      const price = await fetchRiftboundCardPrice(card.id, tcgplayerId);
+      const price = await fetchRiftboundCardPrice(card.id, tcgplayerId, card.rawData);
 
       if (!isPriceAvailable(price)) {
         return card;

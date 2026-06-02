@@ -1,4 +1,5 @@
 import { type CollectionCard } from '@/types/collection-card';
+import { getCollectionCardGameType } from '@/utils/collectionCardMigration';
 import {
   extractRiftboundSetCode,
   extractRiftboundSetIdFromRawData,
@@ -18,7 +19,7 @@ export function deriveSetIdFromCard(card: CollectionCard): string {
     return card.setId.trim();
   }
 
-  if (card.gameType === 'riftbound' || isRiftboundCardId(card.id)) {
+  if (getCollectionCardGameType(card) === 'riftbound' || isRiftboundCardId(card.id)) {
     const fromRawData = extractRiftboundSetIdFromRawData(card.rawData);
     if (fromRawData) {
       return fromRawData;

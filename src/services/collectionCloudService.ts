@@ -7,8 +7,8 @@ import {
   getMagicCardAliasIds,
   inferGameTypeFromCardId,
   normalizeCollectionCard,
+  getCollectionCardGameType,
   reconcileCollectionCards,
-  resolveCardGameType,
 } from '@/utils/collectionCardMigration';
 import { getCardPrice, isPriceAvailable } from '@/utils/pricing';
 
@@ -43,12 +43,9 @@ function mergeCardRecords(localCard: CollectionCard, remoteCard: CollectionCard)
 
   return normalizeCollectionCard({
     ...core,
-    gameType: resolveCardGameType({
-      id: core.id,
-      gameType: localCard.gameType ?? remoteCard.gameType,
-      imageUrl: localCard.imageUrl ?? remoteCard.imageUrl,
-      type: localCard.type ?? remoteCard.type,
-      rawData: localCard.rawData ?? remoteCard.rawData,
+    gameType: getCollectionCardGameType({
+      ...core,
+      gameType: core.gameType ?? localCard.gameType ?? remoteCard.gameType,
     }),
     setName: localCard.setName ?? remoteCard.setName ?? core.setName ?? core.set,
     quantity: Math.max(localCard.quantity, remoteCard.quantity),
