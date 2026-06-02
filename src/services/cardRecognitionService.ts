@@ -1,7 +1,8 @@
 import { CARD_GAME_CONFIG } from '@/config/cardGames';
 import { type ScannedCard } from '@/constants/scan-data';
-import { searchCardsByName } from '@/services/pokemonTcgApi';
+import { searchCardsByName, searchPokemonCardsForRecognition } from '@/services/pokemonTcgApi';
 import { scanCardFromImage } from '@/services/scanApiService';
+import { searchCardsByExtractedInfo } from '@/services/tcgDexApi';
 import {
   magicGameCardToScannedCard,
   searchMagicCardsForRecognition,
@@ -72,6 +73,133 @@ export function gameCardToScannedCard(card: GameCard): ScannedCard {
   };
 }
 
+function normalizeCardNumber(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.match(/\d+/);
+  if (!match) {
+    return null;
+  }
+
+  return match[0].replace(/^0+/, '') || '0';
+}
+
+function scorePokemonCandidate(card: ScannedCard, extracted: ExtractedCardInfo): number {
+  let score = 0;
+  const cardName = card.name.toLowerCase();
+
+  for (const value of [extracted.name, extracted.nameEnglish]) {
+    const name = value?.trim();
+
+    if (!name) {
+      continue;
+    }
+
+    const normalizedName = name.toLowerCase();
+
+    if (normalizedName === cardName) {
+      score += 100;
+    } else if (cardName.includes(normalizedName) || normalizedName.includes(cardName)) {
+      score += 50;
+    }
+  }
+
+  const extractedNumber = normalizeCardNumber(extracted.number);
+  const candidateNumber = normalizeCardNumber(card.number);
+
+  if (extractedNumber && candidateNumber && extractedNumber === candidateNumber) {
+    score += 1000;
+  }
+
+  const setName = extracted.set?.trim().toLowerCase();
+
+  if (setName && card.setName.toLowerCase().includes(setName)) {
+    score += 500;
+  }
+
+  const language = extracted.language?.toLowerCase() ?? '';
+
+  if (
+    (language.includes('portug') ||
+      language.includes('brasil') ||
+      language.includes('brazil')) &&
+    card.id.startsWith('tcgdex-')
+  ) {
+    score += 200;
+  }
+
+  return score;
+}
+
+function rankPokemonCandidates(
+  cards: ScannedCard[],
+  extracted: ExtractedCardInfo,
+): ScannedCard[] {
+  return cards
+    .map((card, index) => ({ card, index }))
+    .sort((left, right) => {
+      const scoreDiff =
+        scorePokemonCandidate(right.card, extracted) -
+        scorePokemonCandidate(left.card, extracted);
+
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+
+      return left.index - right.index;
+    })
+    .map(({ card }) => card);
+}
+
+function appendUniqueCards(pool: ScannedCard[], cards: ScannedCard[]): void {
+  const seenIds = new Set(pool.map((card) => card.id));
+
+  for (const card of cards) {
+    if (seenIds.has(card.id)) {
+      continue;
+    }
+
+    seenIds.add(card.id);
+    pool.push(card);
+  }
+}
+
+async function resolvePokemonCandidates(
+  detectedName: string,
+  backendCandidates: ScannedCard[],
+  extracted: ExtractedCardInfo,
+): Promise<GameCard[]> {
+  const pool: ScannedCard[] = [];
+
+  appendUniqueCards(pool, backendCandidates);
+
+  try {
+    const [tcgDexCards, pokemonTcgCards] = await Promise.all([
+      searchCardsByExtractedInfo(extracted),
+      searchPokemonCardsForRecognition(extracted),
+    ]);
+
+    appendUniqueCards(pool, tcgDexCards);
+    appendUniqueCards(pool, pokemonTcgCards);
+  } catch {
+    // APIs externas indisponíveis — segue com candidatos do backend.
+  }
+
+  if (pool.length === 0 && detectedName.trim()) {
+    appendUniqueCards(pool, await searchCardsByName(detectedName));
+  }
+
+  if (pool.length === 0) {
+    return [];
+  }
+
+  return rankPokemonCandidates(pool, extracted)
+    .slice(0, 3)
+    .map(scannedCardToGameCard);
+}
+
 async function resolveCandidates(
   gameType: CardGameType,
   detectedName: string,
@@ -79,16 +207,7 @@ async function resolveCandidates(
   extracted: ExtractedCardInfo,
 ): Promise<GameCard[]> {
   if (gameType === 'pokemon') {
-    if (backendCandidates.length > 0) {
-      return backendCandidates.slice(0, 3).map(scannedCardToGameCard);
-    }
-
-    if (!detectedName.trim()) {
-      return [];
-    }
-
-    const scannedCards = await searchCardsByName(detectedName);
-    return scannedCards.slice(0, 3).map(scannedCardToGameCard);
+    return resolvePokemonCandidates(detectedName, backendCandidates, extracted);
   }
 
   if (gameType === 'riftbound') {

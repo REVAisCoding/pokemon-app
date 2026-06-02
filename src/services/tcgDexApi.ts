@@ -1,4 +1,5 @@
 import { type ScannedCard } from '@/constants/scan-data';
+import { type ExtractedCardInfo } from '@/services/scanApiService';
 import { pricingToCardPrice, type TcgDexPricing } from '@/utils/card-pricing';
 import { fetchWithTimeout } from '@/utils/fetch-with-timeout';
 import { isPriceAvailable } from '@/utils/pricing';
@@ -217,4 +218,138 @@ export async function searchCardsByNamePt(name: string): Promise<ScannedCard[]> 
 
 export async function searchCardsByNameEn(name: string): Promise<ScannedCard[]> {
   return searchCardsByNameWithLocale('en', name);
+}
+
+function resolveTcgDexLocale(language: string | null | undefined): TcgDexLocale {
+  const normalized = (language ?? '').toLowerCase();
+
+  if (normalized.includes('english') || normalized.includes('ingl')) {
+    return 'en';
+  }
+
+  return 'pt';
+}
+
+function localIdVariants(number: string | null | undefined): string[] {
+  if (!number) {
+    return [];
+  }
+
+  const trimmed = number.trim();
+  const variants: string[] = [];
+
+  for (const value of [trimmed, trimmed.replace(/^0+/, '') || '0', trimmed.padStart(3, '0')]) {
+    if (!variants.includes(value)) {
+      variants.push(value);
+    }
+  }
+
+  return variants;
+}
+
+function getSearchNames(extracted: ExtractedCardInfo): string[] {
+  const names: string[] = [];
+
+  for (const value of [extracted.name, extracted.nameEnglish]) {
+    const cleaned = value?.trim();
+
+    if (cleaned && !names.includes(cleaned)) {
+      names.push(cleaned);
+    }
+  }
+
+  return names;
+}
+
+async function fetchTcgDexBriefCards(
+  locale: TcgDexLocale,
+  params: Record<string, string>,
+): Promise<TcgDexBriefCard[]> {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetchWithTimeout(`${getTcgDexBaseUrl(locale)}/cards?${query}`);
+
+  if (!response?.ok) {
+    return [];
+  }
+
+  return (await response.json()) as TcgDexBriefCard[];
+}
+
+async function searchCardsByExtractedInfoWithLocale(
+  locale: TcgDexLocale,
+  extracted: ExtractedCardInfo,
+): Promise<ScannedCard[]> {
+  const names = getSearchNames(extracted);
+
+  if (names.length === 0) {
+    return [];
+  }
+
+  const numberVariants = localIdVariants(extracted.number);
+  const numberBriefs: TcgDexBriefCard[] = [];
+  const nameBriefs: TcgDexBriefCard[] = [];
+  const seenIds = new Set<string>();
+
+  for (const name of names) {
+    if (numberVariants.length > 0) {
+      for (const localId of numberVariants) {
+        const matches = await fetchTcgDexBriefCards(locale, { name, localId });
+
+        for (const match of matches) {
+          if (seenIds.has(match.id)) {
+            continue;
+          }
+
+          seenIds.add(match.id);
+          numberBriefs.push(match);
+        }
+      }
+    }
+
+    const matches = await fetchTcgDexBriefCards(locale, { name });
+
+    for (const match of matches) {
+      if (seenIds.has(match.id)) {
+        continue;
+      }
+
+      seenIds.add(match.id);
+      nameBriefs.push(match);
+    }
+  }
+
+  const briefCards = numberBriefs.length > 0 ? numberBriefs : nameBriefs.slice(0, 20);
+  const detailedCards = await Promise.all(
+    briefCards.map(async (brief) => fetchTcgDexCardDetail(locale, brief.id)),
+  );
+
+  return detailedCards
+    .filter((card): card is TcgDexCard => card !== null)
+    .map(mapTcgDexCardToScannedCard);
+}
+
+export async function searchCardsByExtractedInfo(
+  extracted: ExtractedCardInfo,
+): Promise<ScannedCard[]> {
+  const primaryLocale = resolveTcgDexLocale(extracted.language);
+  const locales: TcgDexLocale[] =
+    primaryLocale === 'pt' ? ['pt', 'en'] : ['en', 'pt'];
+
+  const seenIds = new Set<string>();
+  const pool: ScannedCard[] = [];
+
+  for (const locale of locales) {
+    const cards = await searchCardsByExtractedInfoWithLocale(locale, extracted);
+
+    for (const card of cards) {
+      if (seenIds.has(card.id)) {
+        continue;
+      }
+
+      seenIds.add(card.id);
+      pool.push(card);
+    }
+  }
+
+  return pool;
 }

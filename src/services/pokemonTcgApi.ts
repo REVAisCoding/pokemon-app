@@ -1,8 +1,10 @@
 import { type ScannedCard } from '@/constants/scan-data';
 
 import { fetchCardPrice } from '@/services/cardPricingService';
+import { type ExtractedCardInfo } from '@/services/scanApiService';
 import { searchCardsByNameEn, searchCardsByNamePt } from '@/services/tcgDexApi';
 import { extractPokemonTcgApiPrice, isPriceAvailable } from '@/utils/pricing';
+import { fetchWithTimeout } from '@/utils/fetch-with-timeout';
 
 const API_BASE_URL = 'https://api.pokemontcg.io/v2';
 
@@ -100,6 +102,96 @@ export function mapPokemonTcgCardToScannedCard(card: PokemonTcgCard): ScannedCar
 
 const POKEMON_TCG_PAGE_SIZE = 250;
 const POKEMON_TCG_MAX_PAGES = 3;
+const POKEMON_TCG_SCAN_PAGE_SIZE = 20;
+
+function escapeQueryValue(value: string): string {
+  return value.replace(/"/g, '\\"');
+}
+
+function getSearchNames(extracted: ExtractedCardInfo): string[] {
+  const names: string[] = [];
+
+  for (const value of [extracted.name, extracted.nameEnglish]) {
+    const cleaned = value?.trim();
+
+    if (cleaned && !names.includes(cleaned)) {
+      names.push(cleaned);
+    }
+  }
+
+  return names;
+}
+
+function buildSearchQueries(extracted: ExtractedCardInfo): string[] {
+  const queries: string[] = [];
+  const number = extracted.number?.trim() ?? '';
+  const setName = extracted.set?.trim() ?? '';
+  const names = getSearchNames(extracted);
+
+  for (const name of names) {
+    const escapedName = escapeQueryValue(name);
+
+    if (number && setName) {
+      queries.push(
+        `name:"${escapedName}" number:${number} set.name:"${escapeQueryValue(setName)}"`,
+      );
+    }
+
+    if (number) {
+      queries.push(`name:"${escapedName}" number:${number}`);
+    }
+
+    if (setName) {
+      queries.push(`name:"${escapedName}" set.name:"${escapeQueryValue(setName)}"`);
+    }
+
+    queries.push(`name:"${escapedName}"`);
+    queries.push(`name:${name}*`);
+  }
+
+  return queries;
+}
+
+async function fetchPokemonTcgCards(query: string): Promise<PokemonTcgCard[]> {
+  const response = await fetchWithTimeout(
+    `${API_BASE_URL}/cards?q=${encodeURIComponent(query)}&pageSize=${POKEMON_TCG_SCAN_PAGE_SIZE}`,
+  );
+
+  if (!response?.ok) {
+    return [];
+  }
+
+  const payload = (await response.json()) as PokemonTcgCardsResponse;
+  return payload.data;
+}
+
+export async function searchPokemonCardsForRecognition(
+  extracted: ExtractedCardInfo,
+): Promise<ScannedCard[]> {
+  const searchExtracted =
+    extracted.nameEnglish?.trim()
+      ? { ...extracted, name: extracted.nameEnglish }
+      : extracted;
+
+  const queries = buildSearchQueries(searchExtracted);
+  const seenIds = new Set<string>();
+  const pool: ScannedCard[] = [];
+
+  for (const query of queries) {
+    const cards = await fetchPokemonTcgCards(query);
+
+    for (const card of cards) {
+      if (seenIds.has(card.id)) {
+        continue;
+      }
+
+      seenIds.add(card.id);
+      pool.push(mapPokemonTcgCardToScannedCard(card));
+    }
+  }
+
+  return enrichCardsWithPrice(pool);
+}
 
 async function searchPokemonTcgByName(name: string): Promise<ScannedCard[]> {
   const query = encodeURIComponent(`name:${name}*`);
