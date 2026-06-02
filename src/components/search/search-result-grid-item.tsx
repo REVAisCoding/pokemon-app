@@ -40,10 +40,25 @@ export function SearchResultGridItem({ card, onPress }: SearchResultGridItemProp
         <ThemedText style={styles.name} numberOfLines={1}>
           {card.name}
         </ThemedText>
-        <ThemedText style={styles.meta} numberOfLines={1}>
-          {card.setName}
-        </ThemedText>
-        <ThemedText style={styles.meta}>{card.number}</ThemedText>
+        {card.type ? (
+          <ThemedText style={styles.meta} numberOfLines={1}>
+            {card.type}
+          </ThemedText>
+        ) : null}
+        {card.setName ? (
+          <ThemedText style={styles.meta} numberOfLines={1}>
+            {card.setName}
+          </ThemedText>
+        ) : null}
+        {card.rarity ? (
+          <ThemedText style={styles.meta} numberOfLines={1}>
+            {card.rarity}
+          </ThemedText>
+        ) : card.number ? (
+          <ThemedText style={styles.meta} numberOfLines={1}>
+            {card.number}
+          </ThemedText>
+        ) : null}
         <CardEstimatedValue card={card} />
       </View>
     </Pressable>

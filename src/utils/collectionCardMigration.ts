@@ -224,7 +224,11 @@ export function getCollectionCardGameType(card: CardGameTypeHints): CardGameType
 export function resolveCardGameType(card: CardGameTypeHints): CardGameType {
   const inferredFromId = inferGameTypeFromCardId(card.id);
 
-  if (inferredFromId === 'riftbound' || inferredFromId === 'magic' || inferredFromId === 'onepiece') {
+  if (
+    inferredFromId === 'riftbound' ||
+    inferredFromId === 'magic' ||
+    inferredFromId === 'onepiece'
+  ) {
     return inferredFromId;
   }
 

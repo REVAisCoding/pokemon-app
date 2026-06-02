@@ -25,7 +25,12 @@ export type GameCard = {
 };
 
 export function isCardGameType(value: string): value is CardGameType {
-  return value === 'pokemon' || value === 'riftbound' || value === 'magic' || value === 'onepiece';
+  return (
+    value === 'pokemon' ||
+    value === 'riftbound' ||
+    value === 'magic' ||
+    value === 'onepiece'
+  );
 }
 
 export function isCardPriceSource(value: string): value is CardPriceSource {
