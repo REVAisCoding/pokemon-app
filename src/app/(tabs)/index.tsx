@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HomeHeader } from '@/components/home/home-header';
 import { MySetsSection } from '@/components/home/my-sets-section';
+import { PendingScansSection } from '@/components/home/pending-scans-section';
 import {
   DuplicateCardsEmptyHint,
   DuplicateCardsSection,
@@ -21,6 +22,7 @@ import { getCardGameConfig } from '@/config/cardGames';
 import { getUserDisplayName, useAuth } from '@/contexts/auth-context';
 import { useCardCollection } from '@/contexts/card-collection-context';
 import { useGameSelection } from '@/contexts/game-selection-context';
+import { useActiveScanJobs } from '@/hooks/use-active-scan-jobs';
 import { useCollectionSets } from '@/hooks/use-collection-sets';
 import { formatCollectionEstimatedValueBrl } from '@/utils/pricing';
 import { getDuplicateCards } from '@/utils/getDuplicateCards';
@@ -35,6 +37,7 @@ export default function HomeScreen() {
   const { cards, uniqueCards, totalDuplicateCards, uniqueSets, totalRareCards, totalEstimatedValueBrl } =
     useCardCollection();
   const sets = useCollectionSets();
+  const { jobs: activeScanJobs } = useActiveScanJobs(selectedGame ?? 'pokemon');
 
   const duplicateCards = useMemo(() => getDuplicateCards(cards), [cards]);
 
@@ -115,6 +118,7 @@ export default function HomeScreen() {
             onBackPress={handleBackPress}
           />
           <StatsSummaryRow stats={stats} onStatPress={handleStatPress} />
+          <PendingScansSection jobs={activeScanJobs} />
           <RecentCollectionSection
             cards={cards}
             onSeeAllPress={handleSeeAllPress}

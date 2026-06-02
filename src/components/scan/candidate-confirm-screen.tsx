@@ -1,6 +1,7 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import { type Href, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,9 +9,11 @@ import { CardEstimatedValue } from '@/components/shared/card-estimated-value';
 import { ThemedText } from '@/components/themed-text';
 import { scannedCardToRouteParams, type ScannedCard } from '@/constants/scan-data';
 import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { useAuth } from '@/contexts/auth-context';
 import { usePokemonColors } from '@/hooks/use-pokemon-colors';
 import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
+import { confirmScanJob, getScanJob } from '@/services/scanJobService';
 import { consumePendingScanCandidates } from '@/services/scanResultStore';
 
 type CandidateCardProps = {
@@ -52,24 +55,97 @@ export function CandidateConfirmScreen() {
   const colors = usePokemonColors();
   const styles = usePokemonStyles(createStyles);
   const router = useRouter();
+  const { session } = useAuth();
+  const { jobId: rawJobId } = useLocalSearchParams<{ jobId?: string | string[] }>();
+  const jobId = Array.isArray(rawJobId) ? rawJobId[0] : rawJobId;
   const [candidates, setCandidates] = useState<ScannedCard[]>([]);
   const [extractedName, setExtractedName] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const pending = consumePendingScanCandidates();
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-    if (!pending || pending.cards.length === 0) {
-      router.replace('/scan/error' as Href);
-      return;
+      const loadCandidates = async () => {
+        setIsReady(false);
+        setLoadError(null);
+        setCandidates([]);
+        setExtractedName(null);
+
+        if (jobId && session?.access_token) {
+          try {
+            const job = await getScanJob(jobId, session.access_token);
+
+            if (!isActive) {
+              return;
+            }
+
+            if (job.status !== 'completed') {
+              router.replace(`/scan/job/${encodeURIComponent(jobId)}` as Href);
+              return;
+            }
+
+            const jobCandidates = job.resultCandidates ?? [];
+
+            if (jobCandidates.length === 0) {
+              router.replace({
+                pathname: '/scan/error',
+                params: { message: 'Nenhum candidato encontrado para este scan.' },
+              } as Href);
+              return;
+            }
+
+            setCandidates(jobCandidates);
+            setExtractedName(job.detectedName ?? null);
+            setIsReady(true);
+            return;
+          } catch (error) {
+            if (!isActive) {
+              return;
+            }
+
+            setLoadError(
+              error instanceof Error
+                ? error.message
+                : 'Não foi possível carregar os candidatos.',
+            );
+            return;
+          }
+        }
+
+        const pending = consumePendingScanCandidates();
+
+        if (!isActive) {
+          return;
+        }
+
+        if (!pending || pending.cards.length === 0) {
+          router.replace('/scan/error' as Href);
+          return;
+        }
+
+        setCandidates(pending.cards);
+        setExtractedName(pending.extractedName);
+        setIsReady(true);
+      };
+
+      void loadCandidates();
+
+      return () => {
+        isActive = false;
+      };
+    }, [jobId, router, session?.access_token]),
+  );
+
+  const dismissScanJob = useCallback(() => {
+    if (jobId && session?.access_token) {
+      void confirmScanJob(jobId, session.access_token);
     }
-
-    setCandidates(pending.cards);
-    setExtractedName(pending.extractedName);
-    setIsReady(true);
-  }, [router]);
+  }, [jobId, session?.access_token]);
 
   const handleSelectCard = (card: ScannedCard) => {
+    dismissScanJob();
     router.replace({
       pathname: '/scan/result',
       params: scannedCardToRouteParams(card),
@@ -77,11 +153,20 @@ export function CandidateConfirmScreen() {
   };
 
   const handleSearchManually = () => {
+    dismissScanJob();
     router.replace({
       pathname: '/search',
       params: { initialQuery: extractedName?.trim() ?? '' },
     } as Href);
   };
+
+  if (loadError) {
+    return (
+      <View style={styles.loading}>
+        <ThemedText style={styles.errorText}>{loadError}</ThemedText>
+      </View>
+    );
+  }
 
   if (!isReady) {
     return (
@@ -137,6 +222,13 @@ function createStyles(colors: PokemonColorPalette) {
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     backgroundColor: colors.screenBackground,
+    paddingHorizontal: Spacing.four,
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
   content: {
     paddingHorizontal: Spacing.three,

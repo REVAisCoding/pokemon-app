@@ -9,9 +9,13 @@ import { CardScanFrameOverlay } from '@/components/camera/card-scan-frame-overla
 import { ThemedText } from '@/components/themed-text';
 import { setPendingScanImage } from '@/services/scanResultStore';
 import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { useAuth } from '@/contexts/auth-context';
+import { useGameSelection } from '@/contexts/game-selection-context';
 import { usePokemonColors } from '@/hooks/use-pokemon-colors';
 import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
+import { createScanJob, isAsyncScanUnavailableError } from '@/services/scanJobService';
+import { clearPendingScanCandidates } from '@/services/scanResultStore';
 
 const CAMERA_READY_FALLBACK_MS = 2000;
 
@@ -19,6 +23,8 @@ export function CameraScreen() {
   const colors = usePokemonColors();
   const styles = usePokemonStyles(createStyles);
   const router = useRouter();
+  const { session } = useAuth();
+  const { selectedGame } = useGameSelection();
   const isFocused = useIsFocused();
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -65,6 +71,33 @@ export function CameraScreen() {
       if (!photo?.uri) {
         setIsCapturing(false);
         return;
+      }
+
+      const gameType = selectedGame ?? 'pokemon';
+      const accessToken = session?.access_token;
+
+      clearPendingScanCandidates();
+
+      if (accessToken) {
+        try {
+          const { jobId } = await createScanJob(photo.uri, gameType, accessToken);
+          router.push(`/scan/job/${encodeURIComponent(jobId)}` as Href);
+          return;
+        } catch (error) {
+          if (!isAsyncScanUnavailableError(error)) {
+            setIsCapturing(false);
+            router.push({
+              pathname: '/scan/error',
+              params: {
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : 'Não foi possível iniciar o scan.',
+              },
+            } as Href);
+            return;
+          }
+        }
       }
 
       setPendingScanImage(photo.uri);

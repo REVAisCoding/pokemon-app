@@ -5,6 +5,7 @@ export default function ScanLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="loading" />
+      <Stack.Screen name="job/[jobId]" />
       <Stack.Screen name="confirm" />
       <Stack.Screen name="result" />
       <Stack.Screen name="error" />

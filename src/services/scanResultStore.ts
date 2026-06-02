@@ -19,6 +19,11 @@ export function setPendingScanCandidates(cards: ScannedCard[], extractedName: st
   pendingExtractedName = extractedName;
 }
 
+export function clearPendingScanCandidates() {
+  pendingCandidates = null;
+  pendingExtractedName = null;
+}
+
 export function consumePendingScanCandidates(): {
   cards: ScannedCard[];
   extractedName: string | null;

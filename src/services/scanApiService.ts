@@ -73,7 +73,7 @@ export type ScanCardResponse = {
   candidates: ScannedCard[];
 };
 
-function parseScanApiErrorDetail(detail: unknown): string | undefined {
+export function parseScanApiErrorDetail(detail: unknown): string | undefined {
   if (typeof detail === 'string' && detail.trim()) {
     return detail;
   }
