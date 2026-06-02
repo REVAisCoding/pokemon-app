@@ -2,18 +2,22 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CardScanFrameOverlay } from '@/components/camera/card-scan-frame-overlay';
 import { ThemedText } from '@/components/themed-text';
 import { setPendingScanImage } from '@/services/scanResultStore';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 const CAMERA_READY_FALLBACK_MS = 2000;
 
 export function CameraScreen() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const isFocused = useIsFocused();
   const cameraRef = useRef<CameraView>(null);
@@ -73,7 +77,7 @@ export function CameraScreen() {
   if (!permission) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={PokemonColors.primary} />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -130,7 +134,7 @@ export function CameraScreen() {
           accessibilityRole="button"
           accessibilityLabel="Tirar foto">
           {isCapturing ? (
-            <ActivityIndicator color={PokemonColors.primary} />
+            <ActivityIndicator color={colors.primary} />
           ) : (
             <View style={styles.captureButtonInner} />
           )}
@@ -140,7 +144,8 @@ export function CameraScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
     backgroundColor: '#000000',
@@ -149,19 +154,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    position: 'absolute',
+    position: 'absolute' as const,
     left: 0,
     right: 0,
     bottom: 0,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     paddingBottom: Spacing.four,
     gap: Spacing.three,
   },
   hint: {
     fontSize: 14,
-    fontWeight: '600',
-    color: PokemonColors.white,
-    textAlign: 'center',
+    fontWeight: '600' as const,
+    color: colors.white,
+    textAlign: 'center' as const,
     paddingHorizontal: Spacing.three,
   },
   captureButton: {
@@ -169,16 +174,16 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     borderWidth: 4,
-    borderColor: PokemonColors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: colors.white,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   captureButtonInner: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
   },
   captureButtonDisabled: {
     opacity: 0.5,
@@ -188,34 +193,35 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     paddingHorizontal: Spacing.four,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
     gap: Spacing.two,
   },
   permissionTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
   },
   permissionDescription: {
     fontSize: 14,
     lineHeight: 20,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.two,
   },
   permissionButton: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: 999,
   },
   permissionButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
-});
+};
+}

@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import {
   formatSetProgress,
@@ -7,7 +7,8 @@ import {
   getSetDisplayImage,
 } from '@/hooks/use-enriched-set-groups';
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { type CollectionSetGroup } from '@/types/collection-set';
 
@@ -17,6 +18,7 @@ type SetGridItemProps = {
 };
 
 export function SetGridItem({ set, onPress }: SetGridItemProps) {
+  const styles = usePokemonStyles(createStyles);
   const imageUri = getSetDisplayImage(set);
   const abbreviation = getSetAbbreviation(set.setName);
 
@@ -48,16 +50,17 @@ export function SetGridItem({ set, onPress }: SetGridItemProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
   },
   card: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: Spacing.two,
-    alignItems: 'center',
-    shadowColor: PokemonColors.shadow,
+    alignItems: 'center' as const,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -67,44 +70,45 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     marginBottom: Spacing.two,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
-    overflow: 'hidden',
+    borderColor: colors.border,
+    overflow: 'hidden' as const,
   },
   logo: {
-    width: '82%',
-    height: '82%',
+    width: '82%' as const,
+    height: '82%' as const,
   },
   abbreviation: {
     fontSize: 18,
-    fontWeight: '800',
-    color: PokemonColors.primary,
+    fontWeight: '800' as const,
+    color: colors.primary,
   },
   name: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.one,
     minHeight: 36,
   },
   meta: {
     fontSize: 12,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
   progress: {
     fontSize: 12,
-    fontWeight: '700',
-    color: PokemonColors.primary,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.primary,
+    textAlign: 'center' as const,
     marginTop: Spacing.one,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

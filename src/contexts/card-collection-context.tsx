@@ -8,11 +8,13 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { useAuth } from '@/contexts/auth-context';
 import { useGameSelection } from '@/contexts/game-selection-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import {
   deleteCardFromCloud,
@@ -77,6 +79,8 @@ function withUpdatedTimestamp(card: CollectionCard): CollectionCard {
 }
 
 export function CardCollectionProvider({ children }: CardCollectionProviderProps) {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const { user } = useAuth();
   const { selectedGame } = useGameSelection();
   const { rates } = useExchangeRates();
@@ -443,7 +447,7 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={PokemonColors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -463,11 +467,13 @@ export function useCardCollection() {
   return context;
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: PokemonColors.screenBackground,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: colors.screenBackground,
   },
-});
+};
+}

@@ -1,12 +1,14 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeIcon } from '@/components/home/home-icon';
 import { ThemedText } from '@/components/themed-text';
 import { TAB_BAR_CENTER_BUTTON_SIZE, TAB_ITEMS } from '@/constants/navigation';
 import { TAB_BAR_HEIGHT } from '@/constants/theme';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 
 function getNestedRouteName(
   routes: BottomTabBarProps['state']['routes'],
@@ -24,6 +26,8 @@ function getNestedRouteName(
 }
 
 export function BottomNavBar({ state, navigation }: BottomTabBarProps) {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const insets = useSafeAreaInsets();
 
   return (
@@ -32,7 +36,7 @@ export function BottomNavBar({ state, navigation }: BottomTabBarProps) {
         {TAB_ITEMS.map((item) => {
           const routeIndex = state.routes.findIndex((route) => route.name === item.name);
           const isFocused = state.index === routeIndex;
-          const color = isFocused ? PokemonColors.primary : PokemonColors.textMuted;
+          const color = isFocused ? colors.primary : colors.textMuted;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -80,7 +84,7 @@ export function BottomNavBar({ state, navigation }: BottomTabBarProps) {
                   onPress={onPress}
                   accessibilityRole="button"
                   accessibilityLabel="Escanear carta">
-                  <HomeIcon name={item.icon} fallback={item.fallback} size={24} color={PokemonColors.white} />
+                  <HomeIcon name={item.icon} fallback={item.fallback} size={24} color={colors.white} />
                 </Pressable>
               </View>
             );
@@ -104,53 +108,55 @@ export function BottomNavBar({ state, navigation }: BottomTabBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   wrapper: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: PokemonColors.border,
+    borderTopColor: colors.border,
   },
   bar: {
     height: TAB_BAR_HEIGHT,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: 'row' as const,
+    alignItems: 'flex-end' as const,
     paddingHorizontal: 8,
     paddingBottom: 8,
   },
   tab: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    alignItems: 'center' as const,
+    justifyContent: 'flex-end' as const,
     gap: 4,
     paddingBottom: 2,
   },
   label: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   centerSlot: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    alignItems: 'center' as const,
+    justifyContent: 'flex-end' as const,
   },
   centerButton: {
     width: TAB_BAR_CENTER_BUTTON_SIZE,
     height: TAB_BAR_CENTER_BUTTON_SIZE,
     borderRadius: TAB_BAR_CENTER_BUTTON_SIZE / 2,
-    backgroundColor: PokemonColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     marginTop: -28,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
   },
   centerButtonActive: {
-    backgroundColor: PokemonColors.primaryDark,
+    backgroundColor: colors.primaryDark,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

@@ -19,7 +19,9 @@ import { FilterChip } from '@/components/collection/filter-chip';
 import { SetGridItem } from '@/components/collection/set-grid-item';
 import { HomeIcon } from '@/components/home/home-icon';
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { getCardGameConfig } from '@/config/cardGames';
 import { useCardCollection } from '@/contexts/card-collection-context';
@@ -27,11 +29,12 @@ import { useGameSelection } from '@/contexts/game-selection-context';
 import { useCollectionSets } from '@/hooks/use-collection-sets';
 import { useEnrichedSetGroups } from '@/hooks/use-enriched-set-groups';
 import { getDuplicateCards } from '@/utils/getDuplicateCards';
+import { getRareCards } from '@/utils/getRareCards';
 
 function parseInitialViewMode(view: string | string[] | undefined): CollectionViewMode | null {
   const raw = Array.isArray(view) ? view[0] : view;
 
-  if (raw === 'duplicates' || raw === 'sets' || raw === 'cards') {
+  if (raw === 'duplicates' || raw === 'sets' || raw === 'cards' || raw === 'rares') {
     return raw;
   }
 
@@ -39,6 +42,8 @@ function parseInitialViewMode(view: string | string[] | undefined): CollectionVi
 }
 
 export function CollectionScreen() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const { view: viewParam } = useLocalSearchParams<{ view?: string | string[] }>();
   const { selectedGame } = useGameSelection();
@@ -64,6 +69,10 @@ export function CollectionScreen() {
   const sourceCards = useMemo(() => {
     if (viewMode === 'duplicates') {
       return getDuplicateCards(cards);
+    }
+
+    if (viewMode === 'rares') {
+      return getRareCards(cards);
     }
 
     return cards;
@@ -92,7 +101,7 @@ export function CollectionScreen() {
     });
   }, [sourceCards, searchQuery, selectedSet, selectedType]);
 
-  const showCardFilters = viewMode === 'cards' || viewMode === 'duplicates';
+  const showCardFilters = viewMode === 'cards' || viewMode === 'duplicates' || viewMode === 'rares';
 
   const handleScanPress = () => {
     router.replace('/scan' as Href);
@@ -158,6 +167,17 @@ export function CollectionScreen() {
       );
     }
 
+    if (viewMode === 'rares' && sourceCards.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <ThemedText style={styles.emptyTitle}>Nenhuma carta rara</ThemedText>
+          <ThemedText style={styles.emptyDescription}>
+            Cartas com raridade especial aparecerão nesta aba.
+          </ThemedText>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.emptyState}>
         <ThemedText style={styles.emptyTitle}>Nenhuma carta encontrada</ThemedText>
@@ -214,14 +234,14 @@ export function CollectionScreen() {
                     name="magnifyingglass"
                     fallback="⌕"
                     size={18}
-                    color={PokemonColors.textMuted}
+                    color={colors.textMuted}
                   />
                   <TextInput
                     style={styles.searchInput}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     placeholder={gameConfig.searchPlaceholder}
-                    placeholderTextColor={PokemonColors.textMuted}
+                    placeholderTextColor={colors.textMuted}
                     autoCorrect={false}
                     clearButtonMode="while-editing"
                   />
@@ -265,7 +285,7 @@ export function CollectionScreen() {
           </View>
         ) : null}
 
-        {viewMode === 'cards' || viewMode === 'duplicates' ? (
+        {viewMode === 'cards' || viewMode === 'duplicates' || viewMode === 'rares' ? (
           <FlatList
             data={filteredCards}
             keyExtractor={(item) => item.id}
@@ -307,10 +327,11 @@ export function CollectionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
@@ -322,13 +343,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
   },
   subtitle: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   controls: {
     paddingHorizontal: Spacing.three,
@@ -338,26 +359,26 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
     gap: Spacing.two,
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 14,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: PokemonColors.textPrimary,
+    color: colors.textPrimary,
     padding: 0,
   },
   filterLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: PokemonColors.textSecondary,
+    fontWeight: '600' as const,
+    color: colors.textSecondary,
   },
   chipRow: {
     flexGrow: 0,
@@ -375,13 +396,13 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: Spacing.four,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     marginTop: Spacing.two,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -389,30 +410,31 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.one,
   },
   emptyDescription: {
     fontSize: 14,
     lineHeight: 20,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.three,
   },
   emptyButton: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: 999,
   },
   emptyButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

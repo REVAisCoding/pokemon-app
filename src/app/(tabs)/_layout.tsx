@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { BottomNavBar } from '@/components/navigation/bottom-nav-bar';

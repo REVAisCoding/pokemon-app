@@ -1,17 +1,19 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DarkModeSection } from '@/components/profile/dark-mode-section';
 import { DisplayNameEditor } from '@/components/profile/display-name-editor';
 import { ExchangeRateSection } from '@/components/profile/exchange-rate-section';
 import { ProfileSection } from '@/components/profile/profile-section';
 import { ThemedText } from '@/components/themed-text';
 import { getCardGameById } from '@/constants/card-games';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCardCollection } from '@/contexts/card-collection-context';
 import { useGameSelection } from '@/contexts/game-selection-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
-import { BottomTabInset, Spacing } from '@/constants/theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { confirmAction } from '@/utils/confirm-action';
 
 export default function ProfileScreen() {
@@ -20,6 +22,7 @@ export default function ProfileScreen() {
   const { selectedGame } = useGameSelection();
   const { totalCards, uniqueSets, isOnline, isSyncing } = useCardCollection();
   const currentGame = selectedGame ? getCardGameById(selectedGame) : null;
+  const styles = usePokemonStyles(createStyles);
 
   const handleChangeGamePress = () => {
     router.push('/game-select');
@@ -83,6 +86,8 @@ export default function ProfileScreen() {
             </ThemedText>
           </ProfileSection>
 
+          <DarkModeSection />
+
           <ExchangeRateSection />
 
           <Pressable
@@ -98,61 +103,63 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
-    marginBottom: Spacing.one,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: PokemonColors.textSecondary,
-    marginBottom: Spacing.four,
-    lineHeight: 20,
-  },
-  value: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: PokemonColors.textPrimary,
-  },
-  linkButton: {
-    marginTop: Spacing.two,
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.one,
-  },
-  linkButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.primary,
-  },
-  signOutButton: {
-    marginTop: Spacing.two,
-    backgroundColor: PokemonColors.white,
-    borderRadius: 999,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: PokemonColors.border,
-  },
-  signOutButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#D92D20',
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+function createStyles(colors: PokemonColorPalette) {
+  return {
+    container: {
+      flex: 1,
+      backgroundColor: colors.screenBackground,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: Spacing.three,
+      paddingTop: Spacing.three,
+      paddingBottom: BottomTabInset + Spacing.three,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700' as const,
+      color: colors.textPrimary,
+      marginBottom: Spacing.one,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: Spacing.four,
+      lineHeight: 20,
+    },
+    value: {
+      fontSize: 15,
+      fontWeight: '600' as const,
+      color: colors.textPrimary,
+    },
+    linkButton: {
+      marginTop: Spacing.two,
+      alignSelf: 'flex-start' as const,
+      paddingVertical: Spacing.one,
+    },
+    linkButtonText: {
+      fontSize: 14,
+      fontWeight: '700' as const,
+      color: colors.primary,
+    },
+    signOutButton: {
+      marginTop: Spacing.two,
+      backgroundColor: colors.white,
+      borderRadius: 999,
+      paddingVertical: Spacing.three,
+      alignItems: 'center' as const,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    signOutButtonText: {
+      fontSize: 15,
+      fontWeight: '700' as const,
+      color: '#D92D20',
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  };
+}

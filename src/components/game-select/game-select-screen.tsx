@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { CARD_GAMES, type CardGame } from '@/constants/card-games';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { useGameSelection } from '@/contexts/game-selection-context';
 
@@ -20,6 +21,8 @@ const GAME_ICONS: Record<CardGame['id'], string> = {
 };
 
 function GameCard({ game, onPress }: GameCardProps) {
+  const styles = usePokemonStyles(createStyles);
+
   return (
     <Pressable
       style={({ pressed }) => [styles.gameCard, pressed && styles.pressed]}
@@ -39,6 +42,7 @@ function GameCard({ game, onPress }: GameCardProps) {
 }
 
 export function GameSelectScreen() {
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const { selectedGame, selectGame } = useGameSelection();
   const canGoBack = selectedGame !== null;
@@ -93,10 +97,11 @@ export function GameSelectScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
@@ -108,48 +113,48 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.four,
   },
   backButton: {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-start' as const,
     marginBottom: Spacing.three,
     paddingVertical: Spacing.one,
   },
   backButtonText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: PokemonColors.primary,
+    fontWeight: '600' as const,
+    color: colors.primary,
   },
   header: {
     marginBottom: Spacing.four,
   },
   eyebrow: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     lineHeight: 18,
-    color: PokemonColors.primary,
+    color: colors.primary,
     marginBottom: Spacing.one,
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     lineHeight: 36,
-    color: PokemonColors.textPrimary,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
   },
   subtitle: {
     fontSize: 15,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
     lineHeight: 22,
   },
   gamesList: {
     gap: Spacing.two,
   },
   gameCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: PokemonColors.white,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
     gap: Spacing.three,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -159,8 +164,8 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   gameIconText: {
     fontSize: 22,
@@ -173,20 +178,21 @@ const styles = StyleSheet.create({
   },
   gameName: {
     fontSize: 17,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
   },
   gameDescription: {
     fontSize: 13,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
     lineHeight: 18,
   },
   chevron: {
     fontSize: 28,
-    fontWeight: '300',
-    color: PokemonColors.textMuted,
+    fontWeight: '300' as const,
+    color: colors.textMuted,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

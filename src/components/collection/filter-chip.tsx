@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type FilterChipProps = {
@@ -11,6 +12,7 @@ type FilterChipProps = {
 };
 
 export function FilterChip({ label, selected, onPress }: FilterChipProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <Pressable
       style={({ pressed }) => [
@@ -26,29 +28,31 @@ export function FilterChip({ label, selected, onPress }: FilterChipProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   chip: {
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.one,
     borderRadius: 999,
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
     marginRight: Spacing.one,
   },
   chipSelected: {
-    backgroundColor: PokemonColors.primary,
-    borderColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   label: {
     fontSize: 13,
-    fontWeight: '600',
-    color: PokemonColors.textSecondary,
+    fontWeight: '600' as const,
+    color: colors.textSecondary,
   },
   labelSelected: {
-    color: PokemonColors.white,
+    color: colors.white,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

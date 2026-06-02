@@ -1,11 +1,13 @@
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { getCardGameConfig } from '@/config/cardGames';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { useGameSelection } from '@/contexts/game-selection-context';
 import { identifyCardFromImage } from '@/services/scanService';
@@ -23,6 +25,8 @@ const LOADING_TITLE: Record<CardGameType, string> = {
 };
 
 export function LoadingScreen() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const { selectedGame } = useGameSelection();
   const gameType = selectedGame ?? 'pokemon';
@@ -96,7 +100,7 @@ export function LoadingScreen() {
       <SafeAreaView style={styles.content}>
         <View style={styles.card}>
           <View style={styles.iconRing}>
-            <ActivityIndicator size="large" color={PokemonColors.primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
           <ThemedText style={styles.title}>{LOADING_TITLE[gameType]}</ThemedText>
           <ThemedText style={styles.subtitle}>
@@ -109,26 +113,27 @@ export function LoadingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   content: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     paddingHorizontal: Spacing.four,
   },
   card: {
-    width: '100%',
+    width: '100%' as const,
     maxWidth: 320,
-    alignItems: 'center',
-    backgroundColor: PokemonColors.white,
+    alignItems: 'center' as const,
+    backgroundColor: colors.white,
     borderRadius: 24,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.five,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
@@ -138,22 +143,23 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     backgroundColor: 'rgba(108, 99, 255, 0.1)',
     marginBottom: Spacing.three,
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
-});
+};
+}

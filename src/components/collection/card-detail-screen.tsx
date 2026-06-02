@@ -14,7 +14,9 @@ import { LongPressCardImage } from '@/components/card-viewer/long-press-card-ima
 import { HomeIcon } from '@/components/home/home-icon';
 import { ThemedText } from '@/components/themed-text';
 import { CollectionCard, useCardCollection } from '@/contexts/card-collection-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { usePricing } from '@/hooks/use-pricing';
 import {
@@ -33,6 +35,8 @@ type DetailRowProps = {
 };
 
 function DetailRow({ label, value }: DetailRowProps) {
+  const styles = usePokemonStyles(createStyles);
+
   return (
     <View style={styles.detailRow}>
       <ThemedText style={styles.detailLabel}>{label}</ThemedText>
@@ -42,6 +46,8 @@ function DetailRow({ label, value }: DetailRowProps) {
 }
 
 export function CardDetailScreen({ card }: CardDetailScreenProps) {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const navigation = useNavigation();
   const { incrementQuantity, decrementQuantity, removeCard, updateCardPrice } = useCardCollection();
@@ -109,7 +115,7 @@ export function CardDetailScreen({ card }: CardDetailScreenProps) {
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel="Voltar">
-            <HomeIcon name="chevron.left" fallback="←" size={20} color={PokemonColors.textPrimary} />
+            <HomeIcon name="chevron.left" fallback="←" size={20} color={colors.textPrimary} />
           </Pressable>
           <ThemedText style={styles.topBarTitle}>Detalhes da carta</ThemedText>
           <View style={styles.backButtonPlaceholder} />
@@ -165,7 +171,7 @@ export function CardDetailScreen({ card }: CardDetailScreenProps) {
                   value={manualPriceInput}
                   onChangeText={setManualPriceInput}
                   placeholder="Ex.: 25,00"
-                  placeholderTextColor={PokemonColors.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   keyboardType="decimal-pad"
                 />
                 <View style={styles.manualPriceActions}>
@@ -239,18 +245,19 @@ export function CardDetailScreen({ card }: CardDetailScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.two,
   },
@@ -258,11 +265,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: PokemonColors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.white,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
   },
   backButtonPlaceholder: {
     width: 40,
@@ -270,8 +277,8 @@ const styles = StyleSheet.create({
   },
   topBarTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
   },
   content: {
     paddingHorizontal: Spacing.three,
@@ -279,33 +286,33 @@ const styles = StyleSheet.create({
   },
   imageSection: {
     borderRadius: 24,
-    overflow: 'hidden',
+    overflow: 'hidden' as const,
     marginBottom: Spacing.three,
-    backgroundColor: PokemonColors.primary,
-    experimental_backgroundImage: `linear-gradient(135deg, ${PokemonColors.bannerGradientStart}, ${PokemonColors.bannerGradientEnd})`,
+    backgroundColor: colors.primary,
+    experimental_backgroundImage: `linear-gradient(135deg, ${colors.bannerGradientStart}, ${colors.bannerGradientEnd})`,
     padding: Spacing.three,
   },
   imageFrame: {
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: PokemonColors.white,
+    overflow: 'hidden' as const,
+    backgroundColor: colors.white,
     aspectRatio: 0.72,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 6,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
   },
   detailsCard: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
     marginBottom: Spacing.three,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -313,13 +320,13 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 22,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.two,
   },
   badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
     gap: Spacing.two,
     marginBottom: Spacing.three,
   },
@@ -337,37 +344,37 @@ const styles = StyleSheet.create({
   },
   duplicateBadgeText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: PokemonColors.statOrange,
+    fontWeight: '700' as const,
+    color: colors.statOrange,
   },
   typeBadgeText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     color: '#B8860B',
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
     paddingVertical: Spacing.two,
     borderTopWidth: 1,
-    borderTopColor: PokemonColors.border,
+    borderTopColor: colors.border,
   },
   detailLabel: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: PokemonColors.textPrimary,
+    fontWeight: '600' as const,
+    color: colors.textPrimary,
   },
   manualPriceSection: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
     marginBottom: Spacing.three,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -377,18 +384,18 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   manualPriceInput: {
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     fontSize: 15,
-    color: PokemonColors.textPrimary,
+    color: colors.textPrimary,
   },
   manualPriceActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: 'row' as const,
+    justifyContent: 'flex-end' as const,
     gap: Spacing.two,
   },
   manualPriceButton: {
@@ -396,36 +403,36 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
   },
   manualPriceButtonPrimary: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
   manualPriceSecondaryText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: PokemonColors.textSecondary,
+    fontWeight: '600' as const,
+    color: colors.textSecondary,
   },
   manualPricePrimaryText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
   manualPriceTrigger: {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-start' as const,
     paddingVertical: Spacing.one,
   },
   manualPriceTriggerText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
   },
   quantityControls: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
     marginBottom: Spacing.three,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -433,54 +440,55 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.three,
   },
   quantityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     gap: Spacing.three,
   },
   quantityButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: PokemonColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   quantityButtonDisabled: {
     opacity: 0.4,
   },
   quantityButtonText: {
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
     lineHeight: 28,
   },
   quantityValue: {
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     minWidth: 40,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   removeButton: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 999,
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     borderWidth: 1,
     borderColor: '#FFD1D1',
   },
   removeButtonText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     color: '#FF3B30',
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

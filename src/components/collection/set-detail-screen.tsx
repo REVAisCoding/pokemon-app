@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { type Href, useNavigation, useRouter } from 'expo-router';
 import { useLayoutEffect } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CollectionGridItem } from '@/components/collection/collection-grid-item';
@@ -12,7 +12,9 @@ import {
   getSetDisplayImage,
   useEnrichedSetGroup,
 } from '@/hooks/use-enriched-set-groups';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { type CollectionSetGroup } from '@/types/collection-set';
 
@@ -26,6 +28,8 @@ type StatItemProps = {
 };
 
 function StatItem({ label, value }: StatItemProps) {
+  const styles = usePokemonStyles(createStyles);
+
   return (
     <View style={styles.statItem}>
       <ThemedText style={styles.statValue}>{value}</ThemedText>
@@ -35,6 +39,8 @@ function StatItem({ label, value }: StatItemProps) {
 }
 
 export function SetDetailScreen({ set }: SetDetailScreenProps) {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const navigation = useNavigation();
   const enrichedSet = useEnrichedSetGroup(set);
@@ -73,7 +79,7 @@ export function SetDetailScreen({ set }: SetDetailScreenProps) {
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel="Voltar">
-            <HomeIcon name="chevron.left" fallback="←" size={20} color={PokemonColors.textPrimary} />
+            <HomeIcon name="chevron.left" fallback="←" size={20} color={colors.textPrimary} />
           </Pressable>
           <ThemedText style={styles.topBarTitle} numberOfLines={1}>
             {enrichedSet.setName}
@@ -129,18 +135,19 @@ export function SetDetailScreen({ set }: SetDetailScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.two,
   },
@@ -148,11 +155,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: PokemonColors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.white,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
   },
   backButtonPlaceholder: {
     width: 40,
@@ -161,19 +168,19 @@ const styles = StyleSheet.create({
   topBarTitle: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
     marginHorizontal: Spacing.two,
   },
   headerCard: {
     marginHorizontal: Spacing.three,
     marginBottom: Spacing.three,
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
-    alignItems: 'center',
-    shadowColor: PokemonColors.shadow,
+    alignItems: 'center' as const,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -183,54 +190,54 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     marginBottom: Spacing.two,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
-    overflow: 'hidden',
+    borderColor: colors.border,
+    overflow: 'hidden' as const,
   },
   setLogo: {
-    width: '82%',
-    height: '82%',
+    width: '82%' as const,
+    height: '82%' as const,
   },
   abbreviation: {
     fontSize: 24,
-    fontWeight: '800',
-    color: PokemonColors.primary,
+    fontWeight: '800' as const,
+    color: colors.primary,
   },
   setName: {
     fontSize: 20,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.three,
   },
   statsRow: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-around',
+    flexDirection: 'row' as const,
+    width: '100%' as const,
+    justifyContent: 'space-around' as const,
     marginBottom: Spacing.two,
   },
   statItem: {
-    alignItems: 'center',
+    alignItems: 'center' as const,
     flex: 1,
   },
   statValue: {
     fontSize: 20,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   statLabel: {
     fontSize: 12,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   progressCaption: {
     fontSize: 13,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
   listContent: {
     paddingHorizontal: Spacing.three,
@@ -243,4 +250,5 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

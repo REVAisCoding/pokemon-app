@@ -1,12 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Pressable, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { InteractiveCard } from '@/components/card-viewer/interactive-card';
 import { HomeIcon } from '@/components/home/home-icon';
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { type CardGameType } from '@/types/cardGame';
 import { isRareCard } from '@/utils/cardRarity';
@@ -21,6 +23,8 @@ type CardViewerScreenProps = {
 };
 
 export function CardViewerScreen({ imageUrl, name, rarity, gameType = 'pokemon' }: CardViewerScreenProps) {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
@@ -53,7 +57,7 @@ export function CardViewerScreen({ imageUrl, name, rarity, gameType = 'pokemon' 
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel="Fechar visualizador">
-            <HomeIcon name="xmark" fallback="✕" size={18} color={PokemonColors.white} />
+            <HomeIcon name="xmark" fallback="✕" size={18} color={colors.white} />
           </Pressable>
         </View>
 
@@ -79,7 +83,8 @@ export function CardViewerScreen({ imageUrl, name, rarity, gameType = 'pokemon' 
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
     backgroundColor: '#0D0D14',
@@ -97,24 +102,24 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
   },
   cardStage: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     paddingHorizontal: Spacing.three,
   },
   hint: {
     marginTop: Spacing.three,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: 'rgba(255, 255, 255, 0.55)',
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   footer: {
     paddingHorizontal: Spacing.four,
@@ -122,11 +127,12 @@ const styles = StyleSheet.create({
   },
   cardName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: PokemonColors.white,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.white,
+    textAlign: 'center' as const,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

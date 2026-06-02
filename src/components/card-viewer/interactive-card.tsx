@@ -12,7 +12,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { SHIMMER_CONFIG } from '@/components/card-viewer/shimmer-config';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 
 const MAX_ROTATION = 15;
 const SPRING_CONFIG = {
@@ -50,6 +51,7 @@ export function InteractiveCard({
   isShiny = false,
   style,
 }: InteractiveCardProps) {
+  const styles = usePokemonStyles(createStyles);
   const rotateX = useSharedValue(0);
   const rotateY = useSharedValue(0);
 
@@ -189,25 +191,27 @@ export function InteractiveCard({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   cardShell: {
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: PokemonColors.white,
-    shadowColor: PokemonColors.shadow,
+    overflow: 'hidden' as const,
+    backgroundColor: colors.white,
+    shadowColor: colors.shadow,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
   },
   shimmerOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
   highlightOverlay: {
-    position: 'absolute',
-    top: '-35%',
-    left: '-35%',
-    width: '70%',
-    height: '170%',
+    position: 'absolute' as const,
+    top: '-35%' as const,
+    left: '-35%' as const,
+    width: '70%' as const,
+    height: '170%' as const,
   },
-});
+};
+}

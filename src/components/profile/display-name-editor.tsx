@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { getUserDisplayName, useAuth } from '@/contexts/auth-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 import { ProfileSection } from './profile-section';
 
 export function DisplayNameEditor() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const { user, updateDisplayName } = useAuth();
   const [displayName, setDisplayName] = useState(() => getUserDisplayName(user));
   const [nameError, setNameError] = useState<string | null>(null);
@@ -53,7 +57,7 @@ export function DisplayNameEditor() {
         autoCapitalize="words"
         autoComplete="username"
         placeholder="Seu nome"
-        placeholderTextColor={PokemonColors.textMuted}
+        placeholderTextColor={colors.textMuted}
         style={styles.input}
         editable={!isSaving}
       />
@@ -69,7 +73,7 @@ export function DisplayNameEditor() {
         accessibilityRole="button"
         accessibilityLabel="Salvar nome de usuário">
         {isSaving ? (
-          <ActivityIndicator color={PokemonColors.primary} size="small" />
+          <ActivityIndicator color={colors.primary} size="small" />
         ) : (
           <ThemedText style={styles.saveButtonText}>Salvar nome</ThemedText>
         )}
@@ -78,16 +82,17 @@ export function DisplayNameEditor() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   input: {
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.two,
     fontSize: 15,
-    color: PokemonColors.textPrimary,
-    backgroundColor: PokemonColors.white,
+    color: colors.textPrimary,
+    backgroundColor: colors.white,
   },
   errorText: {
     fontSize: 13,
@@ -97,13 +102,13 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: Spacing.two,
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-start' as const,
     paddingVertical: Spacing.one,
   },
   saveButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
   },
   pressed: {
     opacity: 0.85,
@@ -111,4 +116,5 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.7,
   },
-});
+};
+}

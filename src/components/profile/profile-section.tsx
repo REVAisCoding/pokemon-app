@@ -1,8 +1,9 @@
 import { type ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type ProfileSectionProps = {
@@ -11,6 +12,7 @@ type ProfileSectionProps = {
 };
 
 export function ProfileSection({ label, children }: ProfileSectionProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <View style={styles.card}>
       <ThemedText style={styles.label}>{label}</ThemedText>
@@ -19,19 +21,21 @@ export function ProfileSection({ label, children }: ProfileSectionProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   card: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: Spacing.three,
     marginBottom: Spacing.two,
   },
   label: {
     fontSize: 12,
-    fontWeight: '600',
-    color: PokemonColors.textSecondary,
+    fontWeight: '600' as const,
+    color: colors.textSecondary,
     marginBottom: Spacing.one,
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
     letterSpacing: 0.4,
   },
-});
+};
+}

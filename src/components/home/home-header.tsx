@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type HomeHeaderProps = {
@@ -11,6 +12,7 @@ type HomeHeaderProps = {
 };
 
 export function HomeHeader({ userName, subtitle, onBackPress }: HomeHeaderProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.greetingRow}>
@@ -28,14 +30,15 @@ export function HomeHeader({ userName, subtitle, onBackPress }: HomeHeaderProps)
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     marginBottom: Spacing.three,
   },
   greetingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
     marginBottom: Spacing.one,
     gap: Spacing.two,
   },
@@ -45,8 +48,8 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: PokemonColors.primary,
+    fontWeight: '600' as const,
+    color: colors.primary,
   },
   pressed: {
     opacity: 0.85,
@@ -54,11 +57,12 @@ const styles = StyleSheet.create({
   greeting: {
     flex: 1,
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
   },
   subtitle: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
-});
+};
+}

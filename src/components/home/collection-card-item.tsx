@@ -1,10 +1,11 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { CardEstimatedValue } from '@/components/shared/card-estimated-value';
 import { ThemedText } from '@/components/themed-text';
 import { CollectionCard } from '@/contexts/card-collection-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import {
   CARD_VIEWER_LONG_PRESS_DELAY_MS,
@@ -25,6 +26,7 @@ export function CollectionCardItem({
   onPress,
   quantityBadgeFormat = 'plain',
 }: CollectionCardItemProps) {
+  const styles = usePokemonStyles(createStyles);
   const quantityLabel =
     quantityBadgeFormat === 'multiplier' ? `x${card.quantity}` : String(card.quantity);
   return (
@@ -72,67 +74,69 @@ export function CollectionCardItem({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     width: 108,
     marginRight: Spacing.two,
   },
   imageWrapper: {
-    position: 'relative',
+    position: 'relative' as const,
     marginBottom: Spacing.two,
   },
   imagePlaceholder: {
-    width: '100%',
+    width: '100%' as const,
     aspectRatio: 0.72,
     borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: PokemonColors.border,
+    overflow: 'hidden' as const,
+    backgroundColor: colors.border,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
   },
   cardImage: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
   },
   quantityBadge: {
-    position: 'absolute',
+    position: 'absolute' as const,
     top: 6,
     right: 6,
     minWidth: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: PokemonColors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.white,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     paddingHorizontal: 6,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 2,
   },
   quantityBadgeHighlight: {
-    backgroundColor: PokemonColors.statOrange,
+    backgroundColor: colors.statOrange,
   },
   quantityText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
   },
   quantityTextHighlight: {
-    color: PokemonColors.white,
+    color: colors.white,
   },
   name: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   meta: {
     fontSize: 12,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

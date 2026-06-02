@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { usePricing } from '@/hooks/use-pricing';
 import {
   formatCollectionEstimatedValueBrl,
@@ -17,6 +18,7 @@ type CardEstimatedValueProps = {
 };
 
 export function CardEstimatedValue({ card, valueBrl, variant = 'default' }: CardEstimatedValueProps) {
+  const styles = usePokemonStyles(createStyles);
   const { formatCardPrice } = usePricing();
   const price = card ? getCardPrice(card) : undefined;
   let label: string | null = null;
@@ -40,15 +42,17 @@ export function CardEstimatedValue({ card, valueBrl, variant = 'default' }: Card
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   value: {
     fontSize: 12,
-    fontWeight: '700',
-    color: PokemonColors.statGreen,
+    fontWeight: '700' as const,
+    color: colors.statGreen,
     marginTop: 2,
   },
   valueProminent: {
     fontSize: 14,
     marginTop: 0,
   },
-});
+};
+}

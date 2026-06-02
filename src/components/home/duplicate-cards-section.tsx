@@ -1,10 +1,11 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { CollectionCardItem } from '@/components/home/collection-card-item';
 import { SectionHeader } from '@/components/home/section-header';
 import { ThemedText } from '@/components/themed-text';
 import { CollectionCard } from '@/contexts/card-collection-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type DuplicateCardsSectionProps = {
@@ -18,6 +19,7 @@ export function DuplicateCardsSection({
   onSeeAllPress,
   onCardPress,
 }: DuplicateCardsSectionProps) {
+  const styles = usePokemonStyles(createStyles);
   if (cards.length === 0) {
     return null;
   }
@@ -48,6 +50,8 @@ type DuplicateCardsEmptyHintProps = {
 };
 
 export function DuplicateCardsEmptyHint({ visible }: DuplicateCardsEmptyHintProps) {
+  const styles = usePokemonStyles(createStyles);
+
   if (!visible) {
     return null;
   }
@@ -59,7 +63,8 @@ export function DuplicateCardsEmptyHint({ visible }: DuplicateCardsEmptyHintProp
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     marginBottom: Spacing.three,
   },
@@ -70,11 +75,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
   },
   emptyHintText: {
     fontSize: 13,
-    color: PokemonColors.textMuted,
-    textAlign: 'center',
+    color: colors.textMuted,
+    textAlign: 'center' as const,
   },
-});
+};
+}

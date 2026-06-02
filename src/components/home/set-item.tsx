@@ -1,8 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { CollectionSet } from '@/constants/home-data';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type SetItemProps = {
@@ -10,6 +11,7 @@ type SetItemProps = {
 };
 
 export function SetItem({ set }: SetItemProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={[styles.icon, { backgroundColor: set.backgroundColor }]}>
@@ -23,34 +25,36 @@ export function SetItem({ set }: SetItemProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     width: 88,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     marginRight: Spacing.three,
   },
   icon: {
     width: 72,
     height: 72,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     marginBottom: Spacing.two,
   },
   abbreviation: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
   name: {
     fontSize: 13,
-    fontWeight: '600',
-    color: PokemonColors.textPrimary,
-    textAlign: 'center',
+    fontWeight: '600' as const,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
     marginBottom: 2,
   },
   progress: {
     fontSize: 12,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
-});
+};
+}

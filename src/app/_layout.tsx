@@ -2,30 +2,41 @@ import 'react-native-gesture-handler';
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { ActivityIndicator, StyleSheet, useColorScheme, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
+import { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthRedirect } from '@/components/auth/auth-redirect';
 import { AuthProvider } from '@/contexts/auth-context';
+import { ColorSchemeProvider } from '@/contexts/color-scheme-context';
 import { ExchangeRateProvider } from '@/contexts/exchange-rate-context';
 import { GameSelectionProvider, useGameSelection } from '@/contexts/game-selection-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
 
 function RootNavigator() {
   const colorScheme = useColorScheme();
+  const colors = usePokemonColors();
   const { isLoading } = useGameSelection();
+
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(colors.screenBackground);
+  }, [colors.screenBackground]);
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={PokemonColors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.screenBackground }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <AuthRedirect />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
@@ -49,13 +60,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <GameSelectionProvider>
-            <ExchangeRateProvider>
-              <RootNavigator />
-            </ExchangeRateProvider>
-          </GameSelectionProvider>
-        </AuthProvider>
+        <ColorSchemeProvider>
+          <AuthProvider>
+            <GameSelectionProvider>
+              <ExchangeRateProvider>
+                <RootNavigator />
+              </ExchangeRateProvider>
+            </GameSelectionProvider>
+          </AuthProvider>
+        </ColorSchemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -69,6 +82,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: PokemonColors.screenBackground,
   },
 });

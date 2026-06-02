@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 const CARD_ASPECT_RATIO = 0.72;
@@ -17,6 +18,7 @@ type CardScanFrameOverlayProps = {
 };
 
 export function CardScanFrameOverlay({ bottomInset = 0 }: CardScanFrameOverlayProps) {
+  const styles = usePokemonStyles(createStyles);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -106,21 +108,22 @@ export function CardScanFrameOverlay({ bottomInset = 0 }: CardScanFrameOverlayPr
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   dim: {
-    position: 'absolute',
+    position: 'absolute' as const,
   },
   frame: {
-    position: 'absolute',
+    position: 'absolute' as const,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: FRAME_BORDER_RADIUS,
   },
   corner: {
-    position: 'absolute',
+    position: 'absolute' as const,
     width: CORNER_SIZE,
     height: CORNER_SIZE,
-    borderColor: PokemonColors.white,
+    borderColor: colors.white,
   },
   topLeft: {
     top: -1,
@@ -150,4 +153,5 @@ const styles = StyleSheet.create({
     borderRightWidth: CORNER_WIDTH,
     borderBottomRightRadius: FRAME_BORDER_RADIUS,
   },
-});
+};
+}

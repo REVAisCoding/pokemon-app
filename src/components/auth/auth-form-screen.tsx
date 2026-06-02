@@ -13,7 +13,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
@@ -42,6 +44,8 @@ export function AuthFormScreen({
   alternateLabel,
   onSubmit,
 }: AuthFormScreenProps) {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -119,7 +123,7 @@ export function AuthFormScreen({
                     autoCapitalize="words"
                     autoComplete="username"
                     placeholder="Como quer ser chamado?"
-                    placeholderTextColor={PokemonColors.textMuted}
+                    placeholderTextColor={colors.textMuted}
                     style={styles.input}
                   />
                 </>
@@ -133,7 +137,7 @@ export function AuthFormScreen({
                 autoComplete="email"
                 keyboardType="email-address"
                 placeholder="seu@email.com"
-                placeholderTextColor={PokemonColors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
               />
 
@@ -144,7 +148,7 @@ export function AuthFormScreen({
                 secureTextEntry
                 autoComplete={mode === 'login' ? 'password' : 'new-password'}
                 placeholder="••••••••"
-                placeholderTextColor={PokemonColors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
               />
 
@@ -163,7 +167,7 @@ export function AuthFormScreen({
                 accessibilityRole="button"
                 accessibilityLabel={submitLabel}>
                 {isSubmitting ? (
-                  <ActivityIndicator color={PokemonColors.white} />
+                  <ActivityIndicator color={colors.white} />
                 ) : (
                   <ThemedText style={styles.primaryButtonText}>{submitLabel}</ThemedText>
                 )}
@@ -185,10 +189,11 @@ export function AuthFormScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
@@ -215,40 +220,40 @@ const styles = StyleSheet.create({
   },
   setupBannerTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
     marginBottom: Spacing.one,
   },
   setupBannerText: {
     fontSize: 13,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
     lineHeight: 19,
   },
   eyebrow: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     lineHeight: 18,
-    color: PokemonColors.primary,
+    color: colors.primary,
     marginBottom: Spacing.one,
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     lineHeight: 36,
-    color: PokemonColors.textPrimary,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
   },
   subtitle: {
     fontSize: 15,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
     lineHeight: 22,
   },
   formCard: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
     gap: Spacing.two,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -256,18 +261,18 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: PokemonColors.textPrimary,
+    fontWeight: '600' as const,
+    color: colors.textPrimary,
   },
   input: {
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.two,
     fontSize: 15,
-    color: PokemonColors.textPrimary,
-    backgroundColor: PokemonColors.white,
+    color: colors.textPrimary,
+    backgroundColor: colors.white,
   },
   errorText: {
     fontSize: 13,
@@ -275,16 +280,16 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   primaryButton: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     marginTop: Spacing.one,
   },
   primaryButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
   pressed: {
     opacity: 0.85,
@@ -294,16 +299,17 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: Spacing.four,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     gap: Spacing.one,
   },
   footerText: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   footerLink: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
   },
-});
+};
+}

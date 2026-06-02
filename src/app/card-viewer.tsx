@@ -1,11 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { CardViewerScreen } from '@/components/card-viewer/card-viewer-screen';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 
 export default function CardViewerRoute() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const { imageUrl, name, rarity, gameType } = useLocalSearchParams<{
     imageUrl?: string | string[];
     name?: string | string[];
@@ -28,7 +32,7 @@ export default function CardViewerRoute() {
   if (!resolvedImageUrl) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator color={PokemonColors.primary} />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -49,11 +53,13 @@ export default function CardViewerRoute() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   loading: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     backgroundColor: '#0D0D14',
   },
-});
+};
+}

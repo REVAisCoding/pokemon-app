@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Spacing } from '@/constants/theme';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 
 type TabScreenPlaceholderProps = {
   title: string;
@@ -12,6 +13,7 @@ type TabScreenPlaceholderProps = {
 };
 
 export function TabScreenPlaceholder({ title, description }: TabScreenPlaceholderProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -22,10 +24,11 @@ export function TabScreenPlaceholder({ title, description }: TabScreenPlaceholde
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
     paddingBottom: BottomTabInset + Spacing.three,
   },
   safeArea: {
@@ -35,12 +38,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
   },
   description: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
-});
+};
+}

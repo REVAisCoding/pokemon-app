@@ -1,10 +1,11 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
 import { CollectionCardItem } from '@/components/home/collection-card-item';
 import { SectionHeader } from '@/components/home/section-header';
 import { ThemedText } from '@/components/themed-text';
 import { CollectionCard } from '@/contexts/card-collection-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type RecentCollectionSectionProps = {
@@ -20,6 +21,7 @@ export function RecentCollectionSection({
   onCardPress,
   onScanFirstPress,
 }: RecentCollectionSectionProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <View style={styles.container}>
       <SectionHeader title="Coleção recente" onActionPress={onSeeAllPress} />
@@ -53,7 +55,8 @@ export function RecentCollectionSection({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     marginBottom: Spacing.three,
   },
@@ -61,11 +64,11 @@ const styles = StyleSheet.create({
     paddingRight: Spacing.three,
   },
   emptyState: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: Spacing.four,
-    alignItems: 'center',
-    shadowColor: PokemonColors.shadow,
+    alignItems: 'center' as const,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -73,22 +76,23 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.three,
   },
   emptyButton: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: 999,
   },
   emptyButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

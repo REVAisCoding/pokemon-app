@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type SectionHeaderProps = {
@@ -11,6 +12,7 @@ type SectionHeaderProps = {
 };
 
 export function SectionHeader({ title, actionLabel = 'Ver todas', onActionPress }: SectionHeaderProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <View style={styles.container}>
       <ThemedText style={styles.title}>{title}</ThemedText>
@@ -25,21 +27,23 @@ export function SectionHeader({ title, actionLabel = 'Ver todas', onActionPress 
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
     marginBottom: Spacing.two,
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
   },
   action: {
     fontSize: 14,
-    fontWeight: '600',
-    color: PokemonColors.primary,
+    fontWeight: '600' as const,
+    color: colors.primary,
   },
-});
+};
+}

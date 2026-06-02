@@ -1,10 +1,11 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
-export type CollectionViewMode = 'cards' | 'sets' | 'duplicates';
+export type CollectionViewMode = 'cards' | 'sets' | 'duplicates' | 'rares';
 
 type CollectionViewToggleProps = {
   value: CollectionViewMode;
@@ -15,9 +16,11 @@ const OPTIONS: { value: CollectionViewMode; label: string }[] = [
   { value: 'cards', label: 'Todas' },
   { value: 'sets', label: 'Sets' },
   { value: 'duplicates', label: 'Repetidas' },
+  { value: 'rares', label: 'Raras' },
 ];
 
 export function CollectionViewToggle({ value, onChange }: CollectionViewToggleProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <View style={styles.container}>
       {OPTIONS.map((option) => {
@@ -45,35 +48,37 @@ export function CollectionViewToggle({ value, onChange }: CollectionViewTogglePr
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
-    flexDirection: 'row',
-    backgroundColor: PokemonColors.white,
+    flexDirection: 'row' as const,
+    backgroundColor: colors.white,
     borderRadius: 14,
     padding: 4,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
     marginBottom: Spacing.two,
   },
   option: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     paddingVertical: Spacing.two,
     borderRadius: 10,
   },
   optionSelected: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
   },
   label: {
     fontSize: 13,
-    fontWeight: '700',
-    color: PokemonColors.textSecondary,
+    fontWeight: '700' as const,
+    color: colors.textSecondary,
   },
   labelSelected: {
-    color: PokemonColors.white,
+    color: colors.white,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

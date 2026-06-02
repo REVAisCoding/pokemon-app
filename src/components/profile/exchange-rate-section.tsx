@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 
 import { ProfileSection } from '@/components/profile/profile-section';
 import { ThemedText } from '@/components/themed-text';
 import { useExchangeRates } from '@/contexts/exchange-rate-context';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/utils/exchange-rate-format';
 
 export function ExchangeRateSection() {
+  const styles = usePokemonStyles(createStyles);
   const { rates, isLoading, refresh } = useExchangeRates();
   const isOnline = useNetworkStatus();
   const [, setMinuteTick] = useState(0);
@@ -66,27 +68,28 @@ export function ExchangeRateSection() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   value: {
     fontSize: 15,
-    fontWeight: '600',
-    color: PokemonColors.textPrimary,
+    fontWeight: '600' as const,
+    color: colors.textPrimary,
   },
   meta: {
     fontSize: 13,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: Spacing.one,
     lineHeight: 18,
   },
   linkButton: {
     marginTop: Spacing.two,
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-start' as const,
     paddingVertical: Spacing.one,
   },
   linkButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
   },
   linkButtonDisabled: {
     opacity: 0.6,
@@ -94,4 +97,5 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

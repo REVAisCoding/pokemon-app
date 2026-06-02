@@ -1,13 +1,15 @@
 import { Image } from 'expo-image';
 import { type Href, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CardEstimatedValue } from '@/components/shared/card-estimated-value';
 import { ThemedText } from '@/components/themed-text';
 import { scannedCardToRouteParams, type ScannedCard } from '@/constants/scan-data';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { consumePendingScanCandidates } from '@/services/scanResultStore';
 
@@ -17,6 +19,8 @@ type CandidateCardProps = {
 };
 
 function CandidateCard({ card, onPress }: CandidateCardProps) {
+  const styles = usePokemonStyles(createStyles);
+
   return (
     <Pressable
       style={({ pressed }) => [styles.candidateCard, pressed && styles.pressed]}
@@ -45,6 +49,8 @@ function CandidateCard({ card, onPress }: CandidateCardProps) {
 }
 
 export function CandidateConfirmScreen() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const [candidates, setCandidates] = useState<ScannedCard[]>([]);
   const [extractedName, setExtractedName] = useState<string | null>(null);
@@ -80,7 +86,7 @@ export function CandidateConfirmScreen() {
   if (!isReady) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator color={PokemonColors.primary} />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -117,19 +123,20 @@ export function CandidateConfirmScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
   },
   loading: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: PokemonColors.screenBackground,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: colors.screenBackground,
   },
   content: {
     paddingHorizontal: Spacing.three,
@@ -141,30 +148,30 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 13,
-    fontWeight: '600',
-    color: PokemonColors.primary,
+    fontWeight: '600' as const,
+    color: colors.primary,
     marginBottom: Spacing.one,
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   candidatesList: {
     gap: Spacing.two,
     marginBottom: Spacing.three,
   },
   candidateCard: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -172,39 +179,40 @@ const styles = StyleSheet.create({
   },
   imageFrame: {
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: PokemonColors.border,
+    overflow: 'hidden' as const,
+    backgroundColor: colors.border,
     aspectRatio: 0.72,
     marginBottom: Spacing.two,
   },
   cardImage: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
   },
   cardName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   cardMeta: {
     fontSize: 13,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   secondaryButton: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 999,
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
   },
   secondaryButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

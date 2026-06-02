@@ -1,9 +1,11 @@
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { CardDetailScreen } from '@/components/collection/card-detail-screen';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { useCardCollection } from '@/contexts/card-collection-context';
 
 function resolveRouteId(rawId: string | string[] | undefined): string | undefined {
@@ -21,6 +23,8 @@ function resolveRouteId(rawId: string | string[] | undefined): string | undefine
 }
 
 export default function CollectionDetailRoute() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>();
   const router = useRouter();
   const { cards, isLoading } = useCardCollection();
@@ -40,7 +44,7 @@ export default function CollectionDetailRoute() {
   if (isLoading || !id || !card) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator color={PokemonColors.primary} />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -48,11 +52,13 @@ export default function CollectionDetailRoute() {
   return <CardDetailScreen card={card} />;
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   loading: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: PokemonColors.screenBackground,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: colors.screenBackground,
   },
-});
+};
+}

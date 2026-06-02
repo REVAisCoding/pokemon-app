@@ -1,10 +1,9 @@
 import { type NavigationProp, type ParamListBase } from '@react-navigation/native';
 import { type Href, useNavigation, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AddCardBanner } from '@/components/home/add-card-banner';
 import { HomeHeader } from '@/components/home/home-header';
 import { MySetsSection } from '@/components/home/my-sets-section';
 import {
@@ -15,7 +14,8 @@ import { RecentCollectionSection } from '@/components/home/recent-collection-sec
 import { StatsSummaryRow } from '@/components/home/stats-summary-row';
 import { ThemedView } from '@/components/themed-view';
 import { type HomeStat } from '@/constants/home-data';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { getCardGameConfig } from '@/config/cardGames';
 import { getUserDisplayName, useAuth } from '@/contexts/auth-context';
@@ -26,6 +26,7 @@ import { formatCollectionEstimatedValueBrl } from '@/utils/pricing';
 import { getDuplicateCards } from '@/utils/getDuplicateCards';
 
 export default function HomeScreen() {
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const { user } = useAuth();
@@ -71,7 +72,23 @@ export default function HomeScreen() {
   };
 
   const handleSeeAllSetsPress = () => {
-    navigation.navigate('collection', { screen: 'index' });
+    navigation.navigate('collection', { screen: 'index', params: { view: 'sets' } });
+  };
+
+  const handleStatPress = (statId: HomeStat['id']) => {
+    if (statId === 'duplicates') {
+      navigation.navigate('collection', { screen: 'index', params: { view: 'duplicates' } });
+      return;
+    }
+
+    if (statId === 'sets') {
+      navigation.navigate('collection', { screen: 'index', params: { view: 'sets' } });
+      return;
+    }
+
+    if (statId === 'rares') {
+      navigation.navigate('collection', { screen: 'index', params: { view: 'rares' } });
+    }
   };
 
   const handleCardPress = (id: string) => {
@@ -97,8 +114,7 @@ export default function HomeScreen() {
             subtitle={`Sua coleção de ${gameConfig.label}`}
             onBackPress={handleBackPress}
           />
-          <AddCardBanner onScanPress={handleScanPress} />
-          <StatsSummaryRow stats={stats} />
+          <StatsSummaryRow stats={stats} onStatPress={handleStatPress} />
           <RecentCollectionSection
             cards={cards}
             onSeeAllPress={handleSeeAllPress}
@@ -124,10 +140,11 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
@@ -136,4 +153,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingBottom: BottomTabInset + Spacing.three,
   },
-});
+};
+}

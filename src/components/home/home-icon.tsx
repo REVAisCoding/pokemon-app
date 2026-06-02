@@ -1,8 +1,10 @@
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import type { SFSymbol } from 'sf-symbols-typescript';
 
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 
 type HomeIconProps = {
   name: SFSymbol;
@@ -15,8 +17,12 @@ export function HomeIcon({
   name,
   fallback,
   size = 18,
-  color = PokemonColors.textPrimary,
+  color: colorProp,
 }: HomeIconProps) {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
+  const color = colorProp ?? colors.textPrimary;
+
   return (
     <SymbolView
       name={name}
@@ -33,12 +39,14 @@ export function HomeIcon({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   icon: {
     width: 20,
     height: 20,
   },
   fallback: {
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
-});
+};
+}

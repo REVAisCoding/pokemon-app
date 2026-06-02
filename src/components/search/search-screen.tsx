@@ -14,7 +14,9 @@ import { HomeIcon } from '@/components/home/home-icon';
 import { SearchResultGridItem } from '@/components/search/search-result-grid-item';
 import { ThemedText } from '@/components/themed-text';
 import { scannedCardToRouteParams, type ScannedCard } from '@/constants/scan-data';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonColors } from '@/hooks/use-pokemon-colors';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { getCardGameConfig } from '@/config/cardGames';
 import { useGameSelection } from '@/contexts/game-selection-context';
@@ -50,6 +52,8 @@ async function searchCardsForGame(gameType: CardGameType, query: string): Promis
 }
 
 export function SearchScreen() {
+  const colors = usePokemonColors();
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const { selectedGame } = useGameSelection();
   const activeGameType = selectedGame ?? 'pokemon';
@@ -148,13 +152,13 @@ export function SearchScreen() {
         </View>
 
         <View style={styles.searchBar}>
-          <HomeIcon name="magnifyingglass" fallback="⌕" size={18} color={PokemonColors.textMuted} />
+          <HomeIcon name="magnifyingglass" fallback="⌕" size={18} color={colors.textMuted} />
           <TextInput
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}
             placeholder={gameConfig.searchPlaceholder}
-            placeholderTextColor={PokemonColors.textMuted}
+            placeholderTextColor={colors.textMuted}
             autoCorrect={false}
             clearButtonMode="while-editing"
             returnKeyType="search"
@@ -163,7 +167,7 @@ export function SearchScreen() {
 
         {isLoading ? (
           <View style={styles.loadingState}>
-            <ActivityIndicator size="small" color={PokemonColors.primary} />
+            <ActivityIndicator size="small" color={colors.primary} />
             <ThemedText style={styles.loadingText}>Buscando cartas...</ThemedText>
           </View>
         ) : null}
@@ -189,10 +193,11 @@ export function SearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
@@ -204,43 +209,43 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
   },
   subtitle: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
     gap: Spacing.two,
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 14,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
     marginHorizontal: Spacing.three,
     marginBottom: Spacing.two,
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: PokemonColors.textPrimary,
+    color: colors.textPrimary,
     padding: 0,
   },
   loadingState: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     gap: Spacing.two,
     paddingBottom: Spacing.two,
   },
   loadingText: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   listContent: {
     paddingHorizontal: Spacing.three,
@@ -255,13 +260,13 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: Spacing.four,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     marginTop: Spacing.two,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -269,15 +274,16 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
-    textAlign: 'center',
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.one,
   },
   emptyDescription: {
     fontSize: 14,
     lineHeight: 20,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
-});
+};
+}

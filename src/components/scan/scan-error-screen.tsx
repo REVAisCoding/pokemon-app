@@ -1,9 +1,10 @@
 import { type Href, useRouter } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 
 type ScanErrorScreenProps = {
@@ -15,6 +16,7 @@ export function ScanErrorScreen({
   cardName,
   message = 'Não foi possível identificar a carta a partir da foto.',
 }: ScanErrorScreenProps) {
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
 
   const handleTryAgain = () => {
@@ -67,26 +69,27 @@ export function ScanErrorScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   content: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     paddingHorizontal: Spacing.four,
   },
   card: {
-    width: '100%',
+    width: '100%' as const,
     maxWidth: 320,
-    alignItems: 'center',
-    backgroundColor: PokemonColors.white,
+    alignItems: 'center' as const,
+    backgroundColor: colors.white,
     borderRadius: 24,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.five,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
@@ -96,59 +99,60 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     backgroundColor: 'rgba(255, 149, 0, 0.12)',
     marginBottom: Spacing.three,
   },
   iconText: {
     fontSize: 36,
-    fontWeight: '700',
-    color: PokemonColors.statOrange,
+    fontWeight: '700' as const,
+    color: colors.statOrange,
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.one,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
     marginBottom: Spacing.four,
   },
   actions: {
-    width: '100%',
+    width: '100%' as const,
     gap: Spacing.two,
   },
   primaryButton: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
   },
   primaryButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
   secondaryButton: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 999,
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
   },
   secondaryButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

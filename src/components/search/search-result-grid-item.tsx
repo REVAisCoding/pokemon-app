@@ -1,10 +1,11 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { CardEstimatedValue } from '@/components/shared/card-estimated-value';
 import { ThemedText } from '@/components/themed-text';
 import { type ScannedCard } from '@/constants/scan-data';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import {
   CARD_VIEWER_LONG_PRESS_DELAY_MS,
@@ -18,6 +19,7 @@ type SearchResultGridItemProps = {
 };
 
 export function SearchResultGridItem({ card, onPress }: SearchResultGridItemProps) {
+  const styles = usePokemonStyles(createStyles);
   return (
     <Pressable
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
@@ -48,38 +50,40 @@ export function SearchResultGridItem({ card, onPress }: SearchResultGridItemProp
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
   },
   card: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: Spacing.two,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 2,
   },
   image: {
-    width: '100%',
+    width: '100%' as const,
     aspectRatio: 0.72,
     borderRadius: 12,
-    backgroundColor: PokemonColors.border,
+    backgroundColor: colors.border,
     marginBottom: Spacing.two,
   },
   name: {
     fontSize: 14,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   meta: {
     fontSize: 12,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}

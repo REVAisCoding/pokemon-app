@@ -1,10 +1,11 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { SetCardItem } from '@/components/home/set-card-item';
 import { SectionHeader } from '@/components/home/section-header';
 import { ThemedText } from '@/components/themed-text';
 import { useEnrichedSetGroups } from '@/hooks/use-enriched-set-groups';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { type CollectionSetGroup } from '@/types/collection-set';
 
@@ -15,6 +16,7 @@ type MySetsSectionProps = {
 };
 
 export function MySetsSection({ sets, onSeeAllPress, onSetPress }: MySetsSectionProps) {
+  const styles = usePokemonStyles(createStyles);
   const enrichedSets = useEnrichedSetGroups(sets);
 
   return (
@@ -45,7 +47,8 @@ export function MySetsSection({ sets, onSeeAllPress, onSetPress }: MySetsSection
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     marginBottom: Spacing.three,
   },
@@ -53,11 +56,11 @@ const styles = StyleSheet.create({
     paddingRight: Spacing.three,
   },
   emptyState: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: Spacing.four,
-    alignItems: 'center',
-    shadowColor: PokemonColors.shadow,
+    alignItems: 'center' as const,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -66,7 +69,8 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     lineHeight: 20,
-    color: PokemonColors.textSecondary,
-    textAlign: 'center',
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
   },
-});
+};
+}

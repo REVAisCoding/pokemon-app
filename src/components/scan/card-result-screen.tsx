@@ -1,11 +1,12 @@
 import { type Href, useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LongPressCardImage } from '@/components/card-viewer/long-press-card-image';
 import { ThemedText } from '@/components/themed-text';
 import { type ScannedCard } from '@/constants/scan-data';
-import { PokemonColors } from '@/constants/pokemon-theme';
+import { type PokemonColorPalette } from '@/constants/pokemon-theme';
+import { usePokemonStyles } from '@/hooks/use-pokemon-styles';
 import { Spacing } from '@/constants/theme';
 import { useCardCollection } from '@/contexts/card-collection-context';
 import { useGameSelection } from '@/contexts/game-selection-context';
@@ -23,6 +24,8 @@ type DetailRowProps = {
 };
 
 function DetailRow({ label, value }: DetailRowProps) {
+  const styles = usePokemonStyles(createStyles);
+
   return (
     <View style={styles.detailRow}>
       <ThemedText style={styles.detailLabel}>{label}</ThemedText>
@@ -32,6 +35,7 @@ function DetailRow({ label, value }: DetailRowProps) {
 }
 
 export function CardResultScreen({ card, source = 'scan' }: CardResultScreenProps) {
+  const styles = usePokemonStyles(createStyles);
   const router = useRouter();
   const { addCard } = useCardCollection();
   const { selectedGame } = useGameSelection();
@@ -137,10 +141,11 @@ export function CardResultScreen({ card, source = 'scan' }: CardResultScreenProp
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: PokemonColorPalette) {
+  return {
   container: {
     flex: 1,
-    backgroundColor: PokemonColors.screenBackground,
+    backgroundColor: colors.screenBackground,
   },
   safeArea: {
     flex: 1,
@@ -155,44 +160,44 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 13,
-    fontWeight: '600',
-    color: PokemonColors.primary,
+    fontWeight: '600' as const,
+    color: colors.primary,
     marginBottom: Spacing.one,
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
   },
   cardPreview: {
     borderRadius: 24,
-    overflow: 'hidden',
+    overflow: 'hidden' as const,
     marginBottom: Spacing.three,
-    backgroundColor: PokemonColors.primary,
-    experimental_backgroundImage: `linear-gradient(135deg, ${PokemonColors.bannerGradientStart}, ${PokemonColors.bannerGradientEnd})`,
+    backgroundColor: colors.primary,
+    experimental_backgroundImage: `linear-gradient(135deg, ${colors.bannerGradientStart}, ${colors.bannerGradientEnd})`,
     padding: Spacing.three,
   },
   imageFrame: {
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: PokemonColors.white,
+    overflow: 'hidden' as const,
+    backgroundColor: colors.white,
     aspectRatio: 0.72,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 6,
   },
   cardImage: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
   },
   detailsCard: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: Spacing.three,
     marginBottom: Spacing.three,
-    shadowColor: PokemonColors.shadow,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -200,12 +205,12 @@ const styles = StyleSheet.create({
   },
   cardName: {
     fontSize: 22,
-    fontWeight: '700',
-    color: PokemonColors.textPrimary,
+    fontWeight: '700' as const,
+    color: colors.textPrimary,
     marginBottom: Spacing.two,
   },
   typeBadge: {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-start' as const,
     backgroundColor: 'rgba(247, 208, 70, 0.2)',
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.one,
@@ -214,54 +219,55 @@ const styles = StyleSheet.create({
   },
   typeBadgeText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     color: '#B8860B',
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
     paddingVertical: Spacing.two,
     borderTopWidth: 1,
-    borderTopColor: PokemonColors.border,
+    borderTopColor: colors.border,
   },
   detailLabel: {
     fontSize: 14,
-    color: PokemonColors.textSecondary,
+    color: colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: PokemonColors.textPrimary,
+    fontWeight: '600' as const,
+    color: colors.textPrimary,
   },
   actions: {
     gap: Spacing.two,
   },
   primaryButton: {
-    backgroundColor: PokemonColors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
   },
   primaryButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: PokemonColors.white,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
   secondaryButton: {
-    backgroundColor: PokemonColors.white,
+    backgroundColor: colors.white,
     borderRadius: 999,
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     borderWidth: 1,
-    borderColor: PokemonColors.border,
+    borderColor: colors.border,
   },
   secondaryButtonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: PokemonColors.primary,
+    fontWeight: '700' as const,
+    color: colors.primary,
   },
   pressed: {
     opacity: 0.85,
   },
-});
+};
+}
