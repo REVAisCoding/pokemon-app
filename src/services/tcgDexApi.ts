@@ -1,5 +1,6 @@
 import { type ScannedCard } from '@/constants/scan-data';
 import { pricingToCardPrice, type TcgDexPricing } from '@/utils/card-pricing';
+import { fetchWithTimeout } from '@/utils/fetch-with-timeout';
 import { isPriceAvailable } from '@/utils/pricing';
 
 const TCGDEX_PT_BASE_URL = 'https://api.tcgdex.net/v2/pt';
@@ -107,9 +108,9 @@ async function getSetReleaseTimestamps(): Promise<Map<string, number>> {
     return cachedSetReleaseTimestamps;
   }
 
-  const response = await fetch(`${TCGDEX_EN_BASE_URL}/sets`);
+  const response = await fetchWithTimeout(`${TCGDEX_EN_BASE_URL}/sets`);
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return new Map();
   }
 
@@ -150,11 +151,11 @@ async function fetchTcgDexBriefCardsByName(
   const allCards: TcgDexBriefCard[] = [];
 
   for (let page = 1; page <= TCGDEX_MAX_SEARCH_PAGES; page += 1) {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${baseUrl}/cards?name=${encodeURIComponent(name)}&pagination:page=${page}&pagination:itemsPerPage=${TCGDEX_SEARCH_PAGE_SIZE}`,
     );
 
-    if (!response.ok) {
+    if (!response?.ok) {
       break;
     }
 
@@ -173,9 +174,9 @@ async function fetchTcgDexCardDetail(
   locale: TcgDexLocale,
   cardId: string,
 ): Promise<TcgDexCard | null> {
-  const response = await fetch(`${getTcgDexBaseUrl(locale)}/cards/${cardId}`);
+  const response = await fetchWithTimeout(`${getTcgDexBaseUrl(locale)}/cards/${cardId}`);
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return null;
   }
 

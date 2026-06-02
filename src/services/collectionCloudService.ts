@@ -4,8 +4,10 @@ import { type CardPrice } from '@/types/cardGame';
 import { type UserCardRow } from '@/types/database';
 import {
   getCardCollectionKey,
+  getMagicCardAliasIds,
   inferGameTypeFromCardId,
   normalizeCollectionCard,
+  reconcileCollectionCards,
   resolveCardGameType,
 } from '@/utils/collectionCardMigration';
 import { getCardPrice, isPriceAvailable } from '@/utils/pricing';
@@ -41,7 +43,13 @@ function mergeCardRecords(localCard: CollectionCard, remoteCard: CollectionCard)
 
   return normalizeCollectionCard({
     ...core,
-    gameType: resolveCardGameType(localCard),
+    gameType: resolveCardGameType({
+      id: core.id,
+      gameType: localCard.gameType ?? remoteCard.gameType,
+      imageUrl: localCard.imageUrl ?? remoteCard.imageUrl,
+      type: localCard.type ?? remoteCard.type,
+      rawData: localCard.rawData ?? remoteCard.rawData,
+    }),
     setName: localCard.setName ?? remoteCard.setName ?? core.setName ?? core.set,
     quantity: Math.max(localCard.quantity, remoteCard.quantity),
     updatedAt: remoteIsNewer ? remoteCard.updatedAt : localCard.updatedAt,
@@ -57,7 +65,7 @@ function mergeCardRecords(localCard: CollectionCard, remoteCard: CollectionCard)
 }
 
 function rowToCollectionCard(row: UserCardRow): CollectionCard {
-  return {
+  return normalizeCollectionCard({
     id: row.card_api_id,
     gameType: inferGameTypeFromCardId(row.card_api_id),
     name: row.name,
@@ -68,7 +76,7 @@ function rowToCollectionCard(row: UserCardRow): CollectionCard {
     imageUrl: row.image_url,
     quantity: row.quantity,
     updatedAt: row.updated_at,
-  };
+  });
 }
 
 function collectionCardToRow(card: CollectionCard, userId: string) {
@@ -131,11 +139,17 @@ export async function syncCollectionToCloud(
   }
 
   const remoteCards = await fetchUserCardsFromCloud(userId);
-  const localKeys = new Set(cards.map((card) => getCardCollectionKey(card)));
+  const retainedCloudIds = new Set<string>();
 
-  const staleRemoteCards = remoteCards.filter(
-    (card) => !localKeys.has(getCardCollectionKey(card)),
-  );
+  for (const card of cards) {
+    retainedCloudIds.add(card.id);
+
+    for (const aliasId of getMagicCardAliasIds(card)) {
+      retainedCloudIds.add(aliasId);
+    }
+  }
+
+  const staleRemoteCards = remoteCards.filter((card) => !retainedCloudIds.has(card.id));
 
   await Promise.all(
     staleRemoteCards.map((card) => deleteCardFromCloud(userId, card.id)),
@@ -173,10 +187,12 @@ export function mergeLocalAndRemoteCards(
     merged.set(key, mergeCardRecords(localCard, remoteCard));
   }
 
-  return Array.from(merged.values()).sort((left, right) => {
-    const leftTime = left.updatedAt ? Date.parse(left.updatedAt) : 0;
-    const rightTime = right.updatedAt ? Date.parse(right.updatedAt) : 0;
+  return reconcileCollectionCards(
+    Array.from(merged.values()).sort((left, right) => {
+      const leftTime = left.updatedAt ? Date.parse(left.updatedAt) : 0;
+      const rightTime = right.updatedAt ? Date.parse(right.updatedAt) : 0;
 
-    return rightTime - leftTime;
-  });
+      return rightTime - leftTime;
+    }),
+  );
 }

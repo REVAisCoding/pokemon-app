@@ -3,6 +3,9 @@ import { Platform } from 'react-native';
 
 import { type ScannedCard } from '@/constants/scan-data';
 import { type CardGameType } from '@/types/cardGame';
+import { fetchWithTimeout } from '@/utils/fetch-with-timeout';
+
+const SCAN_REQUEST_TIMEOUT_MS = 90_000;
 
 const DEFAULT_SCAN_API_URL = 'http://localhost:8000';
 const SCAN_API_PORT = '8000';
@@ -70,6 +73,25 @@ export type ScanCardResponse = {
   candidates: ScannedCard[];
 };
 
+function parseScanApiErrorDetail(detail: unknown): string | undefined {
+  if (typeof detail === 'string' && detail.trim()) {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const firstMessage = detail.find(
+      (entry): entry is { msg?: string } =>
+        typeof entry === 'object' && entry !== null && typeof entry.msg === 'string',
+    )?.msg;
+
+    if (firstMessage) {
+      return firstMessage;
+    }
+  }
+
+  return undefined;
+}
+
 export async function scanCardFromImage(
   imageUri: string,
   gameType: CardGameType = 'pokemon',
@@ -84,16 +106,18 @@ export async function scanCardFromImage(
   } as unknown as Blob);
   formData.append('game_type', gameType);
 
-  let response: Response;
-
-  try {
-    response = await fetch(`${scanApiUrl}/scan-card`, {
+  const response = await fetchWithTimeout(
+    `${scanApiUrl}/scan-card`,
+    {
       method: 'POST',
       body: formData,
-    });
-  } catch {
+    },
+    SCAN_REQUEST_TIMEOUT_MS,
+  );
+
+  if (!response) {
     throw new Error(
-      `Não foi possível conectar ao backend de scan (${scanApiUrl}). Verifique se o servidor está rodando.`,
+      'A análise demorou demais ou não foi possível conectar ao servidor de scan. Tente novamente.',
     );
   }
 
@@ -101,9 +125,11 @@ export async function scanCardFromImage(
     let message = 'Não foi possível analisar a carta. Tente novamente.';
 
     try {
-      const payload = (await response.json()) as { detail?: string };
-      if (payload.detail) {
-        message = payload.detail;
+      const payload = (await response.json()) as { detail?: unknown };
+      const parsedDetail = parseScanApiErrorDetail(payload.detail);
+
+      if (parsedDetail) {
+        message = parsedDetail;
       }
     } catch {
       // Keep default message when response body is not JSON.

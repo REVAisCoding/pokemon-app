@@ -2,6 +2,7 @@ import { type CardPrice } from '@/types/cardGame';
 import {
   createUnavailablePrice,
   extractPokemonTcgApiPrice,
+  priceToBrl,
   type PokemonTcgApiPricing,
 } from '@/utils/pricing';
 
@@ -101,19 +102,7 @@ export function pricingToEstimatedBrl(pricing?: TcgDexPricing | null): number | 
     return null;
   }
 
-  if (price.currency === 'BRL') {
-    return price.amount;
-  }
-
-  if (price.currency === 'USD') {
-    return price.amount * 5.75;
-  }
-
-  if (price.currency === 'EUR') {
-    return price.amount * 6.35;
-  }
-
-  return null;
+  return priceToBrl(price);
 }
 
 /** @deprecated use formatCollectionEstimatedValueBrl from @/utils/pricing */

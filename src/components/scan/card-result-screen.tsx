@@ -9,7 +9,8 @@ import { PokemonColors } from '@/constants/pokemon-theme';
 import { Spacing } from '@/constants/theme';
 import { useCardCollection } from '@/contexts/card-collection-context';
 import { useGameSelection } from '@/contexts/game-selection-context';
-import { formatCardPriceLabel, resolveScannedCardPrice } from '@/utils/pricing';
+import { usePricing } from '@/hooks/use-pricing';
+import { resolveScannedCardPrice } from '@/utils/pricing';
 
 type CardResultScreenProps = {
   card: ScannedCard;
@@ -34,6 +35,7 @@ export function CardResultScreen({ card, source = 'scan' }: CardResultScreenProp
   const router = useRouter();
   const { addCard } = useCardCollection();
   const { selectedGame } = useGameSelection();
+  const { formatCardPriceLabel } = usePricing();
   const resolvedGameType = card.gameType ?? selectedGame ?? 'pokemon';
 
   const handleAddToCollection = () => {

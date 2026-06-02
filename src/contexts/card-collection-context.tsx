@@ -31,7 +31,8 @@ import {
 } from '@/services/collectionStorage';
 import { type CardGameType, type CardPrice } from '@/types/cardGame';
 import { type AddCollectionCardInput, type CollectionCard } from '@/types/collection-card';
-import { filterCardsByGameType, normalizeCollectionCard, resolveCardGameType } from '@/utils/collectionCardMigration';
+import { filterCardsByGameType, normalizeCollectionCard, reconcileCollectionCards, resolveCardGameType } from '@/utils/collectionCardMigration';
+import { useExchangeRates } from '@/contexts/exchange-rate-context';
 import { calculateCollectionEstimatedValue } from '@/utils/pricing';
 import { getCardRarity, isRareCard } from '@/utils/card-rarity';
 import { deriveSetIdFromCard } from '@/utils/deriveSetIdFromCard';
@@ -73,6 +74,7 @@ function withUpdatedTimestamp(card: CollectionCard): CollectionCard {
 export function CardCollectionProvider({ children }: CardCollectionProviderProps) {
   const { user } = useAuth();
   const { selectedGame } = useGameSelection();
+  const { rates } = useExchangeRates();
   const isOnline = useNetworkStatus();
   const [allCards, setAllCards] = useState<CollectionCard[]>([]);
   const activeGameType: CardGameType = selectedGame ?? 'pokemon';
@@ -166,7 +168,9 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
       setIsLoading(true);
 
       try {
-        const localCards = (await loadCollectionFromStorage(userId)).map(normalizeCollectionCard);
+        const localCards = reconcileCollectionCards(
+          (await loadCollectionFromStorage(userId)).map(normalizeCollectionCard),
+        );
 
         if (!isMounted) {
           return;
@@ -221,7 +225,10 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
     (card: AddCollectionCardInput) => {
       const gameType = resolveCardGameType({
         id: card.id,
-        gameType: card.gameType ?? activeGameType,
+        gameType: card.gameType,
+        imageUrl: card.imageUrl,
+        type: card.type,
+        rawData: card.rawData,
       });
 
       setAllCards((currentCards) => {
@@ -375,8 +382,8 @@ export function CardCollectionProvider({ children }: CardCollectionProviderProps
   );
 
   const totalEstimatedValueBrl = useMemo(
-    () => calculateCollectionEstimatedValue(cards),
-    [cards],
+    () => calculateCollectionEstimatedValue(cards, rates),
+    [cards, rates],
   );
 
   useEffect(() => {

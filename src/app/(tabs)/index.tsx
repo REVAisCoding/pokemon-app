@@ -82,6 +82,10 @@ export default function HomeScreen() {
     router.push(`/collection/set/${encodeURIComponent(setId)}` as Href);
   };
 
+  const handleBackPress = () => {
+    router.push('/game-select');
+  };
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -91,6 +95,7 @@ export default function HomeScreen() {
           <HomeHeader
             userName={getUserDisplayName(user)}
             subtitle={`Sua coleção de ${gameConfig.label}`}
+            onBackPress={handleBackPress}
           />
           <AddCardBanner onScanPress={handleScanPress} />
           <StatsSummaryRow stats={stats} />

@@ -3,9 +3,7 @@ import {
   type CardPriceSource,
   isCardPriceSource,
 } from '@/types/cardGame';
-
-const USD_TO_BRL = 5.75;
-const EUR_TO_BRL = 6.35;
+import { DEFAULT_EXCHANGE_RATES, type ExchangeRates } from '@/types/exchange-rates';
 
 export type PriceableCard = {
   price?: CardPrice;
@@ -62,23 +60,24 @@ export function resolveScannedCardPrice(
   return price && isPriceAvailable(price) ? price : undefined;
 }
 
-export function formatCardPrice(price: CardPrice): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: price.currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price.amount);
+export function formatCardPrice(
+  price: CardPrice,
+  rates: ExchangeRates = DEFAULT_EXCHANGE_RATES,
+): string {
+  return formatCollectionEstimatedValueBrl(priceToBrl(price, rates));
 }
 
-export function formatCardPriceLabel(card: PriceableCard): string {
+export function formatCardPriceLabel(
+  card: PriceableCard,
+  rates: ExchangeRates = DEFAULT_EXCHANGE_RATES,
+): string {
   const price = getCardPrice(card);
 
   if (!price) {
     return 'Preço indisponível';
   }
 
-  return formatCardPrice(price);
+  return formatCardPrice(price, rates);
 }
 
 export function formatCollectionEstimatedValueBrl(totalBrl: number): string {
@@ -90,23 +89,29 @@ export function formatCollectionEstimatedValueBrl(totalBrl: number): string {
   }).format(totalBrl);
 }
 
-export function priceToBrl(price: CardPrice): number {
+export function priceToBrl(
+  price: CardPrice,
+  rates: ExchangeRates = DEFAULT_EXCHANGE_RATES,
+): number {
   if (price.currency === 'BRL') {
     return price.amount;
   }
 
   if (price.currency === 'USD') {
-    return price.amount * USD_TO_BRL;
+    return price.amount * rates.usdToBrl;
   }
 
   if (price.currency === 'EUR') {
-    return price.amount * EUR_TO_BRL;
+    return price.amount * rates.eurToBrl;
   }
 
   return price.amount;
 }
 
-export function calculateCollectionEstimatedValue(cards: PriceableCard[]): number {
+export function calculateCollectionEstimatedValue(
+  cards: PriceableCard[],
+  rates: ExchangeRates = DEFAULT_EXCHANGE_RATES,
+): number {
   return cards.reduce((total, card) => {
     const price = getCardPrice(card);
     const quantity = card.quantity ?? 1;
@@ -115,7 +120,7 @@ export function calculateCollectionEstimatedValue(cards: PriceableCard[]): numbe
       return total;
     }
 
-    return total + priceToBrl(price) * quantity;
+    return total + priceToBrl(price, rates) * quantity;
   }, 0);
 }
 

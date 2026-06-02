@@ -198,9 +198,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
+    paddingTop: Spacing.four,
+    paddingBottom: Spacing.four,
   },
   header: {
     marginBottom: Spacing.four,
@@ -227,12 +227,14 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 13,
     fontWeight: '600',
+    lineHeight: 18,
     color: PokemonColors.primary,
     marginBottom: Spacing.one,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
+    lineHeight: 36,
     color: PokemonColors.textPrimary,
     marginBottom: Spacing.one,
   },

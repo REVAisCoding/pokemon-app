@@ -16,9 +16,78 @@ import {
 } from '@/utils/riftboundCardId';
 
 const DEFAULT_GAME_TYPE: CardGameType = 'pokemon';
+const MAGIC_CARD_ID_PREFIX = 'magic-';
+const SCRYFALL_UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export type CardGameTypeHints = {
+  id: string;
+  gameType?: CardGameType | string;
+  imageUrl?: string;
+  type?: string;
+  rawData?: Record<string, unknown>;
+};
 
 function isMagicCardId(cardId: string): boolean {
-  return cardId.startsWith('magic-');
+  return cardId.startsWith(MAGIC_CARD_ID_PREFIX);
+}
+
+function isScryfallUuid(value: string): boolean {
+  return SCRYFALL_UUID_PATTERN.test(value.trim());
+}
+
+function extractScryfallUuid(card: CardGameTypeHints): string | null {
+  if (isMagicCardId(card.id)) {
+    const scryfallId = card.id.slice(MAGIC_CARD_ID_PREFIX.length);
+
+    return isScryfallUuid(scryfallId) ? scryfallId.toLowerCase() : null;
+  }
+
+  if (isScryfallUuid(card.id)) {
+    return card.id.trim().toLowerCase();
+  }
+
+  const rawScryfallId = card.rawData?.id;
+
+  if (typeof rawScryfallId === 'string' && isScryfallUuid(rawScryfallId)) {
+    return rawScryfallId.trim().toLowerCase();
+  }
+
+  return null;
+}
+
+function isScryfallImageUrl(imageUrl?: string): boolean {
+  if (!imageUrl?.trim()) {
+    return false;
+  }
+
+  return /scryfall\.(io|com)/i.test(imageUrl);
+}
+
+function isScryfallRawData(rawData?: Record<string, unknown>): boolean {
+  if (!rawData) {
+    return false;
+  }
+
+  return (
+    rawData.object === 'card' &&
+    typeof rawData.set === 'string' &&
+    typeof rawData.collector_number === 'string'
+  );
+}
+
+function buildMagicCardId(scryfallId: string): string {
+  return `${MAGIC_CARD_ID_PREFIX}${scryfallId.toLowerCase()}`;
+}
+
+function canonicalizeMagicCardId(card: CardGameTypeHints): string {
+  const scryfallId = extractScryfallUuid(card);
+
+  if (scryfallId) {
+    return buildMagicCardId(scryfallId);
+  }
+
+  return card.id;
 }
 
 export function inferGameTypeFromCardId(cardId: string): CardGameType {
@@ -26,32 +95,45 @@ export function inferGameTypeFromCardId(cardId: string): CardGameType {
     return 'riftbound';
   }
 
-  if (isMagicCardId(cardId)) {
+  if (isMagicCardId(cardId) || isScryfallUuid(cardId)) {
     return 'magic';
   }
 
   return DEFAULT_GAME_TYPE;
 }
 
-export function resolveCardGameType(card: {
-  id: string;
-  gameType?: CardGameType | string;
-}): CardGameType {
+function inferGameTypeFromCardMetadata(card: CardGameTypeHints): CardGameType | null {
+  if (
+    isMagicCardId(card.id) ||
+    isScryfallUuid(card.id) ||
+    extractScryfallUuid(card) != null ||
+    isScryfallImageUrl(card.imageUrl) ||
+    isScryfallRawData(card.rawData)
+  ) {
+    return 'magic';
+  }
+
+  return null;
+}
+
+export function resolveCardGameType(card: CardGameTypeHints): CardGameType {
+  const inferredFromId = inferGameTypeFromCardId(card.id);
+
+  if (inferredFromId === 'riftbound' || inferredFromId === 'magic') {
+    return inferredFromId;
+  }
+
+  const inferredFromMetadata = inferGameTypeFromCardMetadata(card);
+
+  if (inferredFromMetadata) {
+    return inferredFromMetadata;
+  }
+
   if (card.gameType === 'riftbound' || card.gameType === 'runeterra') {
     return 'riftbound';
   }
 
   if (card.gameType === 'magic') {
-    return 'magic';
-  }
-
-  const inferredFromId = inferGameTypeFromCardId(card.id);
-
-  if (inferredFromId === 'riftbound') {
-    return 'riftbound';
-  }
-
-  if (inferredFromId === 'magic') {
     return 'magic';
   }
 
@@ -62,17 +144,85 @@ export function resolveCardGameType(card: {
   return inferredFromId;
 }
 
-export function getCardCollectionKey(card: { id: string; gameType?: CardGameType | string }): string {
-  return `${resolveCardGameType(card)}:${card.id}`;
+export function getCardCollectionKey(card: CardGameTypeHints): string {
+  const gameType = resolveCardGameType(card);
+  const id = gameType === 'magic' ? canonicalizeMagicCardId(card) : card.id;
+
+  return `${gameType}:${id}`;
+}
+
+function mergeDuplicateMagicCards(
+  left: CollectionCard,
+  right: CollectionCard,
+): CollectionCard {
+  const leftUpdatedAt = left.updatedAt ? Date.parse(left.updatedAt) : 0;
+  const rightUpdatedAt = right.updatedAt ? Date.parse(right.updatedAt) : 0;
+  const preferred = rightUpdatedAt >= leftUpdatedAt ? right : left;
+  const secondary = preferred === right ? left : right;
+
+  return normalizeCollectionCard({
+    ...preferred,
+    quantity: preferred.quantity + secondary.quantity,
+    setName: preferred.setName ?? secondary.setName ?? preferred.set,
+    price: preferred.price ?? secondary.price,
+    rarity: preferred.rarity ?? secondary.rarity,
+    rawData: preferred.rawData ?? secondary.rawData,
+    setId: preferred.setId ?? secondary.setId,
+    setPrintedTotal: preferred.setPrintedTotal ?? secondary.setPrintedTotal,
+    setLogo: preferred.setLogo ?? secondary.setLogo,
+    setSymbol: preferred.setSymbol ?? secondary.setSymbol,
+    updatedAt:
+      rightUpdatedAt >= leftUpdatedAt
+        ? right.updatedAt ?? left.updatedAt
+        : left.updatedAt ?? right.updatedAt,
+  });
+}
+
+export function getMagicCardAliasIds(card: CardGameTypeHints): string[] {
+  const scryfallId = extractScryfallUuid(card);
+
+  if (!scryfallId) {
+    return isMagicCardId(card.id) || isScryfallUuid(card.id) ? [card.id] : [];
+  }
+
+  return [buildMagicCardId(scryfallId), scryfallId];
+}
+
+export function reconcileCollectionCards(cards: CollectionCard[]): CollectionCard[] {
+  const normalized = cards.map(normalizeCollectionCard);
+  const magicByScryfallId = new Map<string, CollectionCard>();
+  const reconciled: CollectionCard[] = [];
+
+  for (const card of normalized) {
+    const scryfallId = extractScryfallUuid(card);
+
+    if (!scryfallId) {
+      reconciled.push(card);
+      continue;
+    }
+
+    const existing = magicByScryfallId.get(scryfallId);
+
+    if (!existing) {
+      magicByScryfallId.set(scryfallId, card);
+      continue;
+    }
+
+    magicByScryfallId.set(scryfallId, mergeDuplicateMagicCards(existing, card));
+  }
+
+  return [...reconciled, ...magicByScryfallId.values()];
 }
 
 export function normalizeCollectionCard(card: CollectionCard): CollectionCard {
   const gameType = resolveCardGameType(card);
   const rarity = getCardRarity(card);
   const price = getCardPrice(card);
+  const id = gameType === 'magic' ? canonicalizeMagicCardId(card) : card.id;
 
   const normalized: CollectionCard = {
     ...card,
+    id,
     gameType,
   };
 
@@ -206,45 +356,49 @@ export function migrateStoredCard(value: unknown): CollectionCard | null {
     return null;
   }
 
-  const gameType = resolveCardGameType({
-    id: coerced.id as string,
-    gameType: typeof coerced.gameType === 'string' ? coerced.gameType : undefined,
-  });
-  const setName =
-    typeof coerced.setName === 'string' && coerced.setName.trim().length > 0
-      ? coerced.setName
-      : (coerced.set as string);
-  const price = resolveStoredPrice(coerced);
   const rawData =
     coerced.rawData != null && typeof coerced.rawData === 'object' && !Array.isArray(coerced.rawData)
       ? (coerced.rawData as Record<string, unknown>)
       : undefined;
+  const price = resolveStoredPrice(coerced);
   const rarity = getCardRarity({
     rarity: typeof coerced.rarity === 'string' ? coerced.rarity : undefined,
     rawData,
   });
 
-  return {
+  const migratedCard = normalizeCollectionCard({
     id: coerced.id as string,
-    gameType,
+    gameType:
+      typeof coerced.gameType === 'string' && coerced.gameType.trim().length > 0
+        ? (coerced.gameType as CardGameType)
+        : DEFAULT_GAME_TYPE,
     name: coerced.name as string,
     imageUrl: coerced.imageUrl as string,
     set: coerced.set as string,
     number: coerced.number as string,
     type: coerced.type as string,
     quantity: coerced.quantity as number,
-    setName,
+    setName:
+      typeof coerced.setName === 'string' && coerced.setName.trim().length > 0
+        ? coerced.setName
+        : (coerced.set as string),
     ...(price ? { price } : {}),
     ...(typeof coerced.setId === 'string' ? { setId: coerced.setId } : {}),
-    ...(typeof coerced.setPrintedTotal === 'number' ? { setPrintedTotal: coerced.setPrintedTotal } : {}),
+    ...(typeof coerced.setPrintedTotal === 'number'
+      ? { setPrintedTotal: coerced.setPrintedTotal }
+      : {}),
     ...(typeof coerced.setLogo === 'string' ? { setLogo: coerced.setLogo } : {}),
     ...(typeof coerced.setSymbol === 'string' ? { setSymbol: coerced.setSymbol } : {}),
-    ...(rarity ? { rarity } : {}),
     ...(typeof coerced.estimatedValueBrl === 'number'
       ? { estimatedValueBrl: coerced.estimatedValueBrl }
       : {}),
     ...(typeof coerced.updatedAt === 'string' ? { updatedAt: coerced.updatedAt } : {}),
     ...(rawData ? { rawData } : {}),
+  });
+
+  return {
+    ...migratedCard,
+    ...(rarity ? { rarity } : {}),
   };
 }
 

@@ -5,7 +5,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CardScanFrameOverlay } from '@/components/camera/card-scan-frame-overlay';
 import { ThemedText } from '@/components/themed-text';
+import { setPendingScanImage } from '@/services/scanResultStore';
 import { PokemonColors } from '@/constants/pokemon-theme';
 import { Spacing } from '@/constants/theme';
 
@@ -51,17 +53,18 @@ export function CameraScreen() {
 
     try {
       setIsCapturing(true);
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        imageType: 'jpg',
+      });
 
       if (!photo?.uri) {
         setIsCapturing(false);
         return;
       }
 
-      router.push({
-        pathname: '/scan/loading',
-        params: { imageUri: photo.uri },
-      } as Href);
+      setPendingScanImage(photo.uri);
+      router.push('/scan/loading' as Href);
     } catch {
       setIsCapturing(false);
     }
@@ -110,6 +113,8 @@ export function CameraScreen() {
         onCameraReady={() => setIsCameraReady(true)}
         onMountError={({ message }) => setMountError(message)}
       />
+
+      <CardScanFrameOverlay />
 
       <SafeAreaView style={styles.overlay} edges={['bottom']} pointerEvents="box-none">
         <ThemedText style={styles.hint}>Posicione a carta dentro da moldura</ThemedText>

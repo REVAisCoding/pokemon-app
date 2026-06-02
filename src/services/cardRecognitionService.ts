@@ -126,16 +126,16 @@ export async function recognizeCardFromImage(
       scanResult.extracted.nameEnglish?.trim() ||
       '';
 
-    if (scanResult.confidence === 'low') {
-      return { status: 'low_confidence', detectedName: detectedName || null };
-    }
-
     const candidates = await resolveCandidates(
       gameType,
       detectedName,
       scanResult.candidates,
       scanResult.extracted,
     );
+
+    if (candidates.length === 0 && scanResult.confidence === 'low') {
+      return { status: 'low_confidence', detectedName: detectedName || null };
+    }
 
     if (candidates.length === 0) {
       return { status: 'not_found', detectedName: detectedName || null };

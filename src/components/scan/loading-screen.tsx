@@ -9,7 +9,10 @@ import { PokemonColors } from '@/constants/pokemon-theme';
 import { Spacing } from '@/constants/theme';
 import { useGameSelection } from '@/contexts/game-selection-context';
 import { identifyCardFromImage } from '@/services/scanService';
-import { setPendingScanCandidates } from '@/services/scanResultStore';
+import {
+  consumePendingScanImage,
+  setPendingScanCandidates,
+} from '@/services/scanResultStore';
 
 import { type CardGameType } from '@/types/cardGame';
 
@@ -24,7 +27,7 @@ export function LoadingScreen() {
   const { selectedGame } = useGameSelection();
   const gameType = selectedGame ?? 'pokemon';
   const gameConfig = getCardGameConfig(gameType);
-  const { imageUri } = useLocalSearchParams<{ imageUri?: string }>();
+  const { imageUri: imageUriParam } = useLocalSearchParams<{ imageUri?: string }>();
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
@@ -35,6 +38,8 @@ export function LoadingScreen() {
     hasStartedRef.current = true;
 
     const identifyCard = async () => {
+      const imageUri = consumePendingScanImage() ?? imageUriParam;
+
       if (!imageUri) {
         router.replace({
           pathname: '/scan/error',
@@ -84,7 +89,7 @@ export function LoadingScreen() {
     };
 
     void identifyCard();
-  }, [gameType, imageUri, router]);
+  }, [gameType, imageUriParam, router]);
 
   return (
     <View style={styles.container}>

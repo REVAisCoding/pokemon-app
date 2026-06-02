@@ -2,8 +2,8 @@ import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { PokemonColors } from '@/constants/pokemon-theme';
+import { usePricing } from '@/hooks/use-pricing';
 import {
-  formatCardPrice,
   formatCollectionEstimatedValueBrl,
   getCardPrice,
   type PriceableCard,
@@ -17,6 +17,7 @@ type CardEstimatedValueProps = {
 };
 
 export function CardEstimatedValue({ card, valueBrl, variant = 'default' }: CardEstimatedValueProps) {
+  const { formatCardPrice } = usePricing();
   const price = card ? getCardPrice(card) : undefined;
   let label: string | null = null;
 

@@ -16,10 +16,9 @@ import { ThemedText } from '@/components/themed-text';
 import { CollectionCard, useCardCollection } from '@/contexts/card-collection-context';
 import { PokemonColors } from '@/constants/pokemon-theme';
 import { Spacing } from '@/constants/theme';
+import { usePricing } from '@/hooks/use-pricing';
 import {
   createManualPrice,
-  formatCardPrice,
-  formatCardPriceLabel,
   getCardPrice,
   isPriceAvailable,
 } from '@/utils/pricing';
@@ -46,6 +45,7 @@ export function CardDetailScreen({ card }: CardDetailScreenProps) {
   const router = useRouter();
   const navigation = useNavigation();
   const { incrementQuantity, decrementQuantity, removeCard, updateCardPrice } = useCardCollection();
+  const { formatCardPrice, formatCardPriceLabel } = usePricing();
   const [showManualPriceInput, setShowManualPriceInput] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState('');
 

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DisplayNameEditor } from '@/components/profile/display-name-editor';
+import { ExchangeRateSection } from '@/components/profile/exchange-rate-section';
 import { ProfileSection } from '@/components/profile/profile-section';
 import { ThemedText } from '@/components/themed-text';
 import { getCardGameById } from '@/constants/card-games';
@@ -81,6 +82,8 @@ export default function ProfileScreen() {
               {isOnline ? (isSyncing ? 'Sincronizando…' : 'Online') : 'Offline (usando cache local)'}
             </ThemedText>
           </ProfileSection>
+
+          <ExchangeRateSection />
 
           <Pressable
             style={({ pressed }) => [styles.signOutButton, pressed && styles.pressed]}

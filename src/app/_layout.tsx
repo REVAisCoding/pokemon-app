@@ -4,9 +4,11 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthRedirect } from '@/components/auth/auth-redirect';
 import { AuthProvider } from '@/contexts/auth-context';
+import { ExchangeRateProvider } from '@/contexts/exchange-rate-context';
 import { GameSelectionProvider, useGameSelection } from '@/contexts/game-selection-context';
 import { PokemonColors } from '@/constants/pokemon-theme';
 
@@ -46,11 +48,15 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
-      <AuthProvider>
-        <GameSelectionProvider>
-          <RootNavigator />
-        </GameSelectionProvider>
-      </AuthProvider>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <GameSelectionProvider>
+            <ExchangeRateProvider>
+              <RootNavigator />
+            </ExchangeRateProvider>
+          </GameSelectionProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

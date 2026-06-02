@@ -2,6 +2,8 @@ import { fetchRiftboundCardPrice, getTcgplayerIdFromRawData } from '@/services/r
 import { type CardGameType, type CardPrice } from '@/types/cardGame';
 import { pricingToCardPrice, type TcgDexPricing } from '@/utils/card-pricing';
 import { inferGameTypeFromCardId } from '@/utils/collectionCardMigration';
+import { fetchWithTimeout } from '@/utils/fetch-with-timeout';
+import { priceToBrl } from '@/utils/pricing';
 import { isRiftboundCardId as isRiftboundCardIdPattern } from '@/utils/riftboundCardId';
 
 const TCGDEX_LOCALES = ['pt', 'en'] as const;
@@ -25,9 +27,9 @@ async function fetchTcgDexPricing(
   locale: (typeof TCGDEX_LOCALES)[number],
   tcgDexId: string,
 ): Promise<TcgDexPricing | null> {
-  const response = await fetch(`https://api.tcgdex.net/v2/${locale}/cards/${tcgDexId}`);
+  const response = await fetchWithTimeout(`https://api.tcgdex.net/v2/${locale}/cards/${tcgDexId}`);
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return null;
   }
 
@@ -76,17 +78,5 @@ export async function fetchEstimatedValueBrl(cardApiId: string): Promise<number 
     return null;
   }
 
-  if (price.currency === 'BRL') {
-    return price.amount;
-  }
-
-  if (price.currency === 'USD') {
-    return price.amount * 5.75;
-  }
-
-  if (price.currency === 'EUR') {
-    return price.amount * 6.35;
-  }
-
-  return null;
+  return priceToBrl(price);
 }

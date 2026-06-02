@@ -132,14 +132,18 @@ export async function searchCardsByName(name: string): Promise<ScannedCard[]> {
     return [];
   }
 
-  const portugueseResults = await searchCardsByNamePt(trimmedName);
-  if (portugueseResults.length > 0) {
-    return portugueseResults;
-  }
+  try {
+    const portugueseResults = await searchCardsByNamePt(trimmedName);
+    if (portugueseResults.length > 0) {
+      return portugueseResults;
+    }
 
-  const tcgDexEnglishResults = await searchCardsByNameEn(trimmedName);
-  if (tcgDexEnglishResults.length > 0) {
-    return tcgDexEnglishResults;
+    const englishTcgDexResults = await searchCardsByNameEn(trimmedName);
+    if (englishTcgDexResults.length > 0) {
+      return englishTcgDexResults;
+    }
+  } catch {
+    // TCGDex indisponível — segue para Pokémon TCG API.
   }
 
   const englishResults = await searchPokemonTcgByName(trimmedName);
@@ -154,13 +158,17 @@ async function enrichCardsWithPrice(cards: ScannedCard[]): Promise<ScannedCard[]
         return card;
       }
 
-      const price = await fetchCardPrice(card.id);
+      try {
+        const price = await fetchCardPrice(card.id);
 
-      if (!isPriceAvailable(price)) {
+        if (!isPriceAvailable(price)) {
+          return card;
+        }
+
+        return { ...card, price };
+      } catch {
         return card;
       }
-
-      return { ...card, price };
     }),
   );
 }

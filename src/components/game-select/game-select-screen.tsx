@@ -103,9 +103,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
+    paddingTop: Spacing.four,
+    paddingBottom: Spacing.four,
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -123,12 +123,14 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 13,
     fontWeight: '600',
+    lineHeight: 18,
     color: PokemonColors.primary,
     marginBottom: Spacing.one,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
+    lineHeight: 36,
     color: PokemonColors.textPrimary,
     marginBottom: Spacing.one,
   },
@@ -161,7 +163,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gameIconText: {
-    fontSize: 28,
+    fontSize: 22,
+    lineHeight: 28,
+    marginTop: 2,
   },
   gameContent: {
     flex: 1,

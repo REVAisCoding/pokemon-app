@@ -1,7 +1,18 @@
 import { type ScannedCard } from '@/constants/scan-data';
 
+let pendingImageUri: string | null = null;
 let pendingCandidates: ScannedCard[] | null = null;
 let pendingExtractedName: string | null = null;
+
+export function setPendingScanImage(imageUri: string) {
+  pendingImageUri = imageUri;
+}
+
+export function consumePendingScanImage(): string | null {
+  const imageUri = pendingImageUri;
+  pendingImageUri = null;
+  return imageUri;
+}
 
 export function setPendingScanCandidates(cards: ScannedCard[], extractedName: string | null) {
   pendingCandidates = cards;
