@@ -8,6 +8,10 @@ import {
   searchMagicCardsForRecognition,
 } from '@/services/magicApi';
 import {
+  onePieceGameCardToScannedCard,
+  searchOnePieceCardsForRecognition,
+} from '@/services/onePieceApi';
+import {
   riftboundGameCardToScannedCard,
   searchRiftboundCardsByNameAsGameCards,
 } from '@/services/riftboundApi';
@@ -65,6 +69,10 @@ export function gameCardToScannedCard(card: GameCard): ScannedCard {
 
   if (gameType === 'magic') {
     return magicGameCardToScannedCard({ ...card, gameType });
+  }
+
+  if (gameType === 'onepiece') {
+    return onePieceGameCardToScannedCard({ ...card, gameType });
   }
 
   return {
@@ -238,6 +246,22 @@ async function resolveCandidates(
       setCode: extracted.set,
     });
     return magicCards.slice(0, 3);
+  }
+
+  if (gameType === 'onepiece') {
+    const searchName =
+      extracted.nameEnglish?.trim() || extracted.name?.trim() || detectedName.trim();
+
+    if (!searchName) {
+      return [];
+    }
+
+    const onePieceCards = await searchOnePieceCardsForRecognition(searchName, {
+      collectorNumber: extracted.number,
+      setId: extracted.set,
+      setName: extracted.set,
+    });
+    return onePieceCards.slice(0, 3);
   }
 
   return [];

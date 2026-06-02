@@ -24,6 +24,10 @@ import {
   magicGameCardToScannedCard,
   searchMagicCardsByName,
 } from '@/services/magicApi';
+import {
+  onePieceGameCardToScannedCard,
+  searchOnePieceCardsByName,
+} from '@/services/onePieceApi';
 import { searchCardsByName } from '@/services/pokemonTcgApi';
 import {
   riftboundGameCardToScannedCard,
@@ -37,6 +41,7 @@ const SEARCH_EMPTY_HINT: Record<CardGameType, string> = {
   pokemon: 'Digite o nome de uma carta para ver resultados da Pokémon TCG API.',
   riftbound: 'Digite o nome de uma carta para ver resultados do Riftcodex.',
   magic: 'Digite o nome de uma carta para ver resultados da Scryfall API.',
+  onepiece: 'Digite o nome de uma carta para ver resultados da OPTCG API.',
 };
 
 async function searchCardsForGame(gameType: CardGameType, query: string): Promise<ScannedCard[]> {
@@ -46,6 +51,10 @@ async function searchCardsForGame(gameType: CardGameType, query: string): Promis
 
   if (gameType === 'magic') {
     return (await searchMagicCardsByName(query)).map(magicGameCardToScannedCard);
+  }
+
+  if (gameType === 'onepiece') {
+    return (await searchOnePieceCardsByName(query)).map(onePieceGameCardToScannedCard);
   }
 
   return searchCardsByName(query);

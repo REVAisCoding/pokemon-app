@@ -45,7 +45,8 @@ export default function CardViewerRoute() {
       gameType={
         resolvedGameType === 'pokemon' ||
         resolvedGameType === 'riftbound' ||
-        resolvedGameType === 'magic'
+        resolvedGameType === 'magic' ||
+        resolvedGameType === 'onepiece'
           ? resolvedGameType
           : undefined
       }

@@ -22,6 +22,11 @@ export const CARD_GAME_CONFIG: Record<CardGameType, CardGameConfig> = {
     themeColor: '#8B2635',
     searchPlaceholder: 'Buscar carta de Magic...',
   },
+  onepiece: {
+    label: 'One Piece Card Game',
+    themeColor: '#C41E3A',
+    searchPlaceholder: 'Buscar carta de One Piece...',
+  },
 };
 
 export function getCardGameConfig(gameType: CardGameType): CardGameConfig {

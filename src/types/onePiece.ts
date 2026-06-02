@@ -1,0 +1,21 @@
+export type OptcgCard = {
+  inventory_price: number | null;
+  market_price: number | null;
+  card_name: string;
+  set_name: string;
+  card_text?: string | null;
+  set_id: string;
+  rarity: string;
+  card_set_id: string;
+  card_color: string;
+  card_type: string;
+  life?: string | null;
+  card_cost?: string | null;
+  card_power?: string | null;
+  sub_types?: string | null;
+  counter_amount?: number | null;
+  attribute?: string | null;
+  date_scraped?: string | null;
+  card_image_id: string;
+  card_image: string;
+};

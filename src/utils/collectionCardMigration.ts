@@ -19,6 +19,7 @@ import {
 
 const DEFAULT_GAME_TYPE: CardGameType = 'pokemon';
 const MAGIC_CARD_ID_PREFIX = 'magic-';
+const ONE_PIECE_CARD_ID_PREFIX = 'onepiece-';
 const SCRYFALL_UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -32,6 +33,22 @@ export type CardGameTypeHints = {
 
 function isMagicCardId(cardId: string): boolean {
   return cardId.startsWith(MAGIC_CARD_ID_PREFIX);
+}
+
+function isOnePieceCardId(cardId: string): boolean {
+  return cardId.startsWith(ONE_PIECE_CARD_ID_PREFIX);
+}
+
+function isOptcgRawData(rawData?: Record<string, unknown>): boolean {
+  if (!rawData) {
+    return false;
+  }
+
+  return (
+    typeof rawData.card_image_id === 'string' &&
+    typeof rawData.card_set_id === 'string' &&
+    typeof rawData.card_name === 'string'
+  );
 }
 
 function isScryfallUuid(value: string): boolean {
@@ -149,6 +166,10 @@ export function inferGameTypeFromCardId(cardId: string): CardGameType {
     return 'magic';
   }
 
+  if (isOnePieceCardId(cardId)) {
+    return 'onepiece';
+  }
+
   return DEFAULT_GAME_TYPE;
 }
 
@@ -172,6 +193,10 @@ function inferGameTypeFromCardMetadata(card: CardGameTypeHints): CardGameType | 
     return 'riftbound';
   }
 
+  if (isOnePieceCardId(card.id) || isOptcgRawData(card.rawData)) {
+    return 'onepiece';
+  }
+
   return null;
 }
 
@@ -185,6 +210,10 @@ export function getCollectionCardGameType(card: CardGameTypeHints): CardGameType
     return 'magic';
   }
 
+  if (card.gameType === 'onepiece') {
+    return 'onepiece';
+  }
+
   if (card.gameType === 'pokemon') {
     return 'pokemon';
   }
@@ -195,7 +224,7 @@ export function getCollectionCardGameType(card: CardGameTypeHints): CardGameType
 export function resolveCardGameType(card: CardGameTypeHints): CardGameType {
   const inferredFromId = inferGameTypeFromCardId(card.id);
 
-  if (inferredFromId === 'riftbound' || inferredFromId === 'magic') {
+  if (inferredFromId === 'riftbound' || inferredFromId === 'magic' || inferredFromId === 'onepiece') {
     return inferredFromId;
   }
 
@@ -211,6 +240,10 @@ export function resolveCardGameType(card: CardGameTypeHints): CardGameType {
 
   if (card.gameType === 'magic') {
     return 'magic';
+  }
+
+  if (card.gameType === 'onepiece') {
+    return 'onepiece';
   }
 
   if (card.gameType === 'pokemon') {

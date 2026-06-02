@@ -33,6 +33,13 @@ export const CARD_GAMES: CardGame[] = [
     description: 'Gerencie sua coleção de cartas Magic: The Gathering.',
     accentColor: CARD_GAME_CONFIG.magic.themeColor,
   },
+  {
+    id: 'onepiece',
+    name: CARD_GAME_CONFIG.onepiece.label,
+    shortName: 'One Piece',
+    description: 'Gerencie sua coleção de cartas One Piece Card Game.',
+    accentColor: CARD_GAME_CONFIG.onepiece.themeColor,
+  },
 ];
 
 export function isCardGameId(value: string): value is CardGameId {

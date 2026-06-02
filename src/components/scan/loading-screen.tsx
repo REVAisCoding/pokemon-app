@@ -22,6 +22,7 @@ const LOADING_TITLE: Record<CardGameType, string> = {
   pokemon: 'Analisando carta de Pokémon...',
   riftbound: 'Analisando carta de Riftbound...',
   magic: 'Analisando carta de Magic...',
+  onepiece: 'Analisando carta de One Piece...',
 };
 
 export function LoadingScreen() {
